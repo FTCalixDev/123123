@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Clock, ArrowRight, Sparkles, ShieldCheck, ShoppingBag, Beer } from 'lucide-react';
+import { Flame, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Promo } from '../types/restaurant';
 import { sound } from '../utils/audio';
 
@@ -9,19 +9,20 @@ interface HeroPromosProps {
 }
 
 export const HeroPromos: React.FC<HeroPromosProps> = ({ promos, onOrderPromo }) => {
+  const activePromos = (promos || []).filter((p) => p.active !== false);
   const [activeSlide, setActiveSlide] = useState(0);
 
-  // Auto advance every 6 seconds
   useEffect(() => {
-    if (!promos || promos.length === 0) return;
+    if (activePromos.length === 0) return;
     const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % promos.length);
+      setActiveSlide((prev) => (prev + 1) % activePromos.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [promos.length]);
+  }, [activePromos.length]);
 
-  if (!promos || promos.length === 0) return null;
-  const currentPromo = promos[activeSlide];
+  if (activePromos.length === 0) return null;
+  const safeIdx = activeSlide % activePromos.length;
+  const currentPromo = activePromos[safeIdx];
 
   return (
     <section id="promos" className="pt-6 sm:pt-8 pb-12">
@@ -39,10 +40,10 @@ export const HeroPromos: React.FC<HeroPromosProps> = ({ promos, onOrderPromo }) 
 
           {/* Slide Content */}
           <div className="relative z-10 max-w-2xl space-y-4 sm:space-y-6">
-            {/* Promo Tag Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-orange-600 to-amber-500 text-stone-950 text-xs font-black uppercase tracking-wider shadow-lg shadow-orange-600/30">
-              <Flame className="w-3.5 h-3.5 fill-current" />
-              <span>{currentPromo.pill} • {currentPromo.discount}</span>
+            {/* Promo Kicker */}
+            <div className="inline-flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+              <Flame className="w-4 h-4 text-orange-500" />
+              <span>{currentPromo.pill} · {currentPromo.discount}</span>
             </div>
 
             {/* Title & Subtitle */}
@@ -62,14 +63,14 @@ export const HeroPromos: React.FC<HeroPromosProps> = ({ promos, onOrderPromo }) 
 
             {/* Pricing Section */}
             <div className="flex items-baseline gap-3 pt-2">
-              <span className="font-display text-4xl sm:text-5xl font-black text-amber-400 ember-glow">
+              <span className="font-display text-4xl sm:text-5xl font-black text-amber-400 ember-glow tabular-nums">
                 ${currentPromo.priceNow} <span className="text-sm font-sans font-bold text-stone-400">$U</span>
               </span>
-              <span className="text-lg sm:text-xl text-stone-500 line-through">
+              <span className="text-lg sm:text-xl text-stone-500 line-through tabular-nums">
                 ${currentPromo.priceOld} $U
               </span>
-              <span className="text-xs px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
-                Ahorrás ${currentPromo.priceOld - currentPromo.priceNow} $U
+              <span className="text-xs text-emerald-400 font-bold">
+                · Ahorrás ${currentPromo.priceOld - currentPromo.priceNow} $U
               </span>
             </div>
 
@@ -80,7 +81,7 @@ export const HeroPromos: React.FC<HeroPromosProps> = ({ promos, onOrderPromo }) 
                   sound.playChime();
                   onOrderPromo(currentPromo);
                 }}
-                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-xl shadow-orange-600/30 transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-xl shadow-orange-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Pedir Promo al Carrito</span>
@@ -102,21 +103,21 @@ export const HeroPromos: React.FC<HeroPromosProps> = ({ promos, onOrderPromo }) 
         {/* Carousel Slide Selector Tabs */}
         <div className="bg-stone-950/95 border-t border-stone-800 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
           <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-            Promociones Disponibles:
+            Promociones Vigentes:
           </span>
 
           <div className="flex flex-wrap items-center gap-2">
-            {promos.map((p, idx) => (
+            {activePromos.map((p, idx) => (
               <button
                 key={p.id}
                 onClick={() => setActiveSlide(idx)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  activeSlide === idx
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  safeIdx === idx
                     ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30 border border-orange-500'
                     : 'bg-stone-900 text-stone-400 border border-stone-800 hover:text-stone-200 hover:border-stone-700'
                 }`}
               >
-                <span>{idx + 1}. {p.badge}</span>
+                <span>0{idx + 1}. {p.badge}</span>
               </button>
             ))}
           </div>

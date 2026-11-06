@@ -623,33 +623,34 @@
       "type": "delivery",
       "verificationCode": "1868",
       "assignedTo": "emp-gonzalo",
-      "assignedToName": "Gonzalo",
+      "assignedToName": "Gonzalo Méndez",
       "claimedAt": "2026-11-06T17:06:57.356Z",
       "deliveredAt": null,
-      "deliveryCommission": 65,
+      "deliveryCommission": 70,
       "failedCodeAttempts": 0,
       "isFraudBlocked": false,
       "fraudReason": "",
       "customer": {
-        "name": "Cliente Real",
-        "phone": "099123456",
-        "address": "18 de Julio 500",
-        "notes": ""
+        "name": "Martín Bentancor",
+        "phone": "+598 99 123 456",
+        "address": "18 de Julio 500 esq. Treinta y Tres, Tacuarembó",
+        "notes": "Casa de rejas negras"
       },
       "items": [
         {
-          "id": "1",
-          "name": "Smash",
-          "price": 380,
-          "quantity": 1
+          "id": "smash-brasa-doble",
+          "name": "Smash Brasa Doble",
+          "price": 390,
+          "quantity": 1,
+          "customNotes": "Punto bien crocante"
         }
       ],
-      "subtotal": 380,
+      "subtotal": 390,
       "deliveryFee": 60,
-      "total": 440,
+      "total": 450,
       "status": "in_transit",
       "paymentMethod": "Efectivo",
-      "notes": "",
+      "notes": "Casa de rejas negras",
       "createdAt": "2026-11-06T17:06:54.450Z",
       "estimatedMinutes": 30,
       "clientIp": "127.0.0.1"
@@ -657,26 +658,38 @@
     {
       "id": "ORD-8130",
       "orderNumber": "#8130",
-      "type": "table",
-      "tableNumber": 4,
+      "type": "takeaway",
+      "verificationCode": "5390",
+      "assignedTo": null,
+      "assignedToName": null,
+      "failedCodeAttempts": 0,
+      "isFraudBlocked": false,
+      "fraudReason": "",
       "customer": {
-        "name": "Test User",
-        "phone": "+59899111222"
+        "name": "Valeria Techera",
+        "phone": "+598 99 111 222",
+        "address": "Retiro en Local"
       },
       "items": [
         {
-          "id": "smash-brasa-doble",
-          "name": "Smash Brasa Doble",
-          "price": 390,
+          "id": "oklahoma-onion-smash",
+          "name": "Oklahoma Onion Smash",
+          "price": 370,
+          "quantity": 1
+        },
+        {
+          "id": "tap-1-pinta",
+          "name": "Pinta Furia Citra IPA",
+          "price": 220,
           "quantity": 1
         }
       ],
-      "subtotal": 390,
+      "subtotal": 590,
       "deliveryFee": 0,
-      "total": 390,
-      "status": "received",
-      "paymentMethod": "Efectivo",
-      "notes": "",
+      "total": 590,
+      "status": "ready",
+      "paymentMethod": "Transferencia Prex / BROU",
+      "notes": "Pasa a retirar en 10 min",
       "createdAt": "2026-11-06T03:20:38.213Z",
       "estimatedMinutes": 15
     },
@@ -716,7 +729,7 @@
       "total": 1160,
       "status": "kitchen",
       "paymentMethod": "Efectivo",
-      "createdAt": "2026-11-05T19:05:00.000Z",
+      "createdAt": "2026-11-06T18:05:00.000Z",
       "estimatedMinutes": 25
     },
     {
@@ -747,11 +760,46 @@
       "deliveryFee": 0,
       "total": 990,
       "status": "oven",
-      "paymentMethod": "Tarjeta en Mesa",
-      "createdAt": "2026-11-05T19:08:00.000Z",
+      "paymentMethod": "Tarjeta Débito/Crédito (Pos)",
+      "createdAt": "2026-11-06T18:08:00.000Z",
       "estimatedMinutes": 12
+    },
+    {
+      "id": "ORD-7805",
+      "orderNumber": "#7805",
+      "type": "delivery",
+      "verificationCode": "3109",
+      "assignedTo": "emp-gonzalo",
+      "assignedToName": "Gonzalo Méndez",
+      "claimedAt": "2026-11-06T15:10:00.000Z",
+      "deliveredAt": "2026-11-06T15:35:00.000Z",
+      "deliveryCommission": 70,
+      "failedCodeAttempts": 0,
+      "isFraudBlocked": false,
+      "fraudReason": "",
+      "customer": {
+        "name": "Diego Correa",
+        "phone": "+598 99 654 321",
+        "address": "General Flores 312, Tacuarembó"
+      },
+      "items": [
+        {
+          "id": "triple-fuego-jalapeno",
+          "name": "Triple Fuego & Jalapeño",
+          "price": 460,
+          "quantity": 2
+        }
+      ],
+      "subtotal": 920,
+      "deliveryFee": 60,
+      "total": 980,
+      "status": "delivered",
+      "paymentMethod": "Efectivo",
+      "createdAt": "2026-11-06T15:00:00.000Z",
+      "estimatedMinutes": 25
     }
   ],
+  "waiterCalls": [],
   "reservations": [
     {
       "id": "RES-104",
@@ -791,7 +839,7 @@
       "username": "Calix",
       "password": "calixdev",
       "role": "admin",
-      "status": "approved",
+      "status": "active",
       "commissionPerDelivery": 60,
       "phone": "+598 99 887 766",
       "createdAt": "2026-11-01T00:00:00.000Z"
@@ -801,8 +849,8 @@
       "name": "Gonzalo Méndez",
       "username": "gonzalo",
       "password": "123",
-      "role": "delivery",
-      "status": "approved",
+      "role": "staff",
+      "status": "active",
       "commissionPerDelivery": 70,
       "phone": "+598 98 444 333",
       "createdAt": "2026-11-02T12:00:00.000Z"
@@ -812,8 +860,8 @@
       "name": "Rodrigo Silva",
       "username": "rodrigo",
       "password": "123",
-      "role": "delivery",
-      "status": "approved",
+      "role": "staff",
+      "status": "active",
       "commissionPerDelivery": 60,
       "phone": "+598 99 222 111",
       "createdAt": "2026-11-05T16:00:00.000Z"
@@ -831,6 +879,7 @@
     "isOpen": true,
     "minOrderAmount": 200,
     "requirePhoneValidation": true,
-    "maxFailedCodeAttempts": 3
+    "maxFailedCodeAttempts": 3,
+    "featuredAnnouncement": "Horno de barro encendido a 420°C • 8 Canillas artesanales tiradas bajo cero"
   }
 }

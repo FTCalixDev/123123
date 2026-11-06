@@ -59,8 +59,8 @@ export const TableQRSection: React.FC<TableQRSectionProps> = ({
             {/* Interactive Table Picker Simulator */}
             <div className="p-5 rounded-2xl bg-stone-900 border border-stone-800 space-y-3">
               <label className="text-xs font-bold uppercase text-stone-400 tracking-wider flex items-center justify-between">
-                <span>Simular que estás sentado en:</span>
-                <span className="text-orange-400 font-bold">Mesa #{activeTable} Seleccionada</span>
+                <span>Selecciona tu mesa actual:</span>
+                <span className="text-orange-400 font-bold">Mesa #{activeTable} Activa</span>
               </label>
 
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">

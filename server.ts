@@ -38,9 +38,20 @@ function readDb() {
       const data = fs.readFileSync(DB_FILE, 'utf-8');
       const parsed = JSON.parse(data);
       if (!parsed.employees) parsed.employees = [];
+      if (!parsed.waiterCalls) parsed.waiterCalls = [];
+      if (Array.isArray(parsed.menu)) {
+        parsed.menu.forEach((m: any) => {
+          if (m.available === undefined) m.available = true;
+        });
+      }
+      if (Array.isArray(parsed.promos)) {
+        parsed.promos.forEach((p: any) => {
+          if (p.active === undefined) p.active = true;
+        });
+      }
       if (Array.isArray(parsed.orders)) {
         parsed.orders.forEach((o: any) => {
-          if (o.type === 'delivery' && !o.verificationCode) {
+          if ((o.type === 'delivery' || o.type === 'takeaway') && !o.verificationCode) {
             o.verificationCode = '4921';
           }
           if (o.failedCodeAttempts === undefined) o.failedCodeAttempts = 0;
@@ -60,7 +71,8 @@ function readDb() {
           isOpen: true,
           minOrderAmount: 200,
           requirePhoneValidation: true,
-          maxFailedCodeAttempts: 3
+          maxFailedCodeAttempts: 3,
+          featuredAnnouncement: 'Horno de barro encendido a 420°C • 8 Canillas artesanales tiradas bajo cero'
         };
       }
       return parsed;
@@ -74,6 +86,7 @@ function readDb() {
     promos: [],
     reviews: [],
     orders: [],
+    waiterCalls: [],
     reservations: [],
     employees: [],
     settings: {
@@ -88,7 +101,8 @@ function readDb() {
       isOpen: true,
       minOrderAmount: 200,
       requirePhoneValidation: true,
-      maxFailedCodeAttempts: 3
+      maxFailedCodeAttempts: 3,
+      featuredAnnouncement: 'Horno de barro encendido a 420°C • 8 Canillas artesanales tiradas bajo cero'
     }
   };
 }
@@ -99,6 +113,75 @@ function writeDb(data: any) {
   } catch (err) {
     console.error('Error writing to db.json:', err);
   }
+}
+
+function computeEmployeeStats(emp: any, orders: any[]) {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthStr = now.toISOString().slice(0, 7);
+
+  const deliveredOrders = (orders || []).filter(
+    (o: any) => o.assignedTo === emp.id && o.status === 'delivered'
+  );
+
+  const deliveriesToday = deliveredOrders.filter(
+    (o: any) => (o.deliveredAt || o.createdAt || '').slice(0, 10) === todayStr
+  ).length;
+
+  const deliveriesWeek = deliveredOrders.filter((o: any) => {
+    const d = new Date(o.deliveredAt || o.createdAt || '');
+    return d >= sevenDaysAgo;
+  }).length;
+
+  const deliveriesMonth = deliveredOrders.filter(
+    (o: any) => (o.deliveredAt || o.createdAt || '').slice(0, 7) === monthStr
+  ).length;
+
+  const deliveriesTotal = deliveredOrders.length;
+  const rate = emp.commissionPerDelivery || 60;
+  const earningsToday = deliveriesToday * rate;
+  const earningsWeek = deliveriesWeek * rate;
+  const earningsMonth = deliveriesMonth * rate;
+  const earningsTotal = deliveriesTotal * rate;
+
+  return {
+    ...emp,
+    deliveriesToday,
+    deliveriesWeek,
+    deliveriesMonth,
+    deliveriesTotal,
+    earningsToday,
+    earningsWeek,
+    earningsMonth,
+    earningsTotal
+  };
+}
+
+// Deduct keg percentage when an order contains tap beers
+function deductKegsFromOrderItems(db: any, items: any[]) {
+  if (!Array.isArray(db.taps) || !Array.isArray(items)) return;
+  items.forEach((item: any) => {
+    const qty = Number(item.quantity) || 1;
+    const itemId = String(item.id || '').toLowerCase();
+    const itemName = String(item.name || '').toLowerCase();
+
+    db.taps.forEach((tap: any) => {
+      const tapId = String(tap.id || '').toLowerCase();
+      const tapName = String(tap.name || '').toLowerCase();
+      if (
+        (tapId && itemId.includes(tapId)) ||
+        (tapName && itemName.includes(tapName))
+      ) {
+        const isGrowler = itemId.includes('growler') || itemName.includes('growler');
+        const deductionPerUnit = isGrowler ? 5 : 2;
+        tap.kegPercentage = Math.max(0, (tap.kegPercentage || 0) - deductionPerUnit * qty);
+        if (tap.kegPercentage <= 25 && tap.status === 'activa') {
+          tap.status = 'ultimas_pintas';
+        }
+      }
+    });
+  });
 }
 
 // Google GenAI helper for AI Sommelier
@@ -117,7 +200,7 @@ function getGenAIClient() {
   });
 }
 
-// Ensure default Admin Calix exists
+// Ensure default Master Admin account ("Calix" / "calixdev") exists in db.json
 function ensureDefaultAdmin() {
   const db = readDb();
   if (!db.employees) db.employees = [];
@@ -129,11 +212,15 @@ function ensureDefaultAdmin() {
       username: 'Calix',
       password: 'calixdev',
       role: 'admin',
-      status: 'approved',
+      status: 'active',
       commissionPerDelivery: 60,
       phone: '+598 99 887 766',
       createdAt: new Date().toISOString()
     });
+    writeDb(db);
+  } else if (adminExists.status !== 'active') {
+    adminExists.status = 'active';
+    adminExists.role = 'admin';
     writeDb(db);
   }
 }
@@ -144,27 +231,46 @@ ensureDefaultAdmin();
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    return res.status(400).json({ error: 'Ingresa usuario y contraseña' });
+    return res.status(400).json({ error: 'Ingresa tu usuario y contraseña' });
   }
 
   const db = readDb();
   const user = db.employees.find(
-    (e: any) => e.username.toLowerCase() === username.trim().toLowerCase()
+    (e: any) => e.username.toLowerCase() === String(username).trim().toLowerCase()
   );
 
-  if (!user || user.password !== password.trim()) {
-    return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+  if (!user || user.password !== String(password).trim()) {
+    return res.status(401).json({ error: 'Credenciales inválidas. Verifica tu usuario y contraseña.' });
   }
 
-  if (user.status !== 'approved' && user.role !== 'admin') {
+  const isActive = user.status === 'active' || user.status === 'approved' || user.role === 'admin';
+  if (!isActive) {
     return res.status(403).json({
-      error: 'Tu cuenta está en espera de aprobación por el Administrador. Contacta al encargado.',
-      status: 'pending'
+      error: 'Tu cuenta se encuentra pendiente de autorización por la gerencia. Una vez aprobada podrás iniciar sesión.',
+      status: user.status || 'pending'
     });
   }
 
-  const { password: _, ...safeUser } = user;
+  const enriched = computeEmployeeStats(user, db.orders || []);
+  const { password: _, ...safeUser } = enriched;
   res.json({ success: true, user: safeUser });
+});
+
+app.post('/api/auth/verify-admin-key', (req, res) => {
+  const { key } = req.body;
+  const db = readDb();
+  const masterAdmin = (db.employees || []).find(
+    (e: any) => e.username.toLowerCase() === 'calix' || e.role === 'admin'
+  );
+  const expectedKey = masterAdmin?.password || 'calixdev';
+
+  if (!key || String(key).trim() !== expectedKey) {
+    return res.status(401).json({
+      error: 'Clave de autorización administrativa inválida.'
+    });
+  }
+
+  res.json({ success: true });
 });
 
 app.post('/api/auth/register', (req, res) => {
@@ -175,22 +281,22 @@ app.post('/api/auth/register', (req, res) => {
 
   const db = readDb();
   const exists = db.employees.find(
-    (e: any) => e.username.toLowerCase() === username.trim().toLowerCase()
+    (e: any) => e.username.toLowerCase() === String(username).trim().toLowerCase()
   );
 
   if (exists) {
-    return res.status(409).json({ error: 'Ese nombre de usuario ya está registrado' });
+    return res.status(409).json({ error: 'Ese nombre de usuario ya está registrado en el sistema' });
   }
 
   const newEmp = {
-    id: `emp-${Date.now()}`,
-    name: name.trim(),
-    username: username.trim(),
-    password: password.trim(),
-    role: 'delivery',
+    id: `emp-${Date.now().toString().slice(-6)}`,
+    name: String(name).trim(),
+    username: String(username).trim(),
+    password: String(password).trim(),
+    role: 'staff',
     status: 'pending',
     commissionPerDelivery: 60,
-    phone: phone ? phone.trim() : '',
+    phone: phone ? String(phone).trim() : '',
     createdAt: new Date().toISOString()
   };
 
@@ -199,7 +305,7 @@ app.post('/api/auth/register', (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Cuenta creada con éxito. Un administrador debe aprobar tu acceso antes de que puedas tomar pedidos.',
+    message: 'Solicitud de alta registrada en estado PENDIENTE. La gerencia revisará tus datos para autorizar el acceso.',
     user: { id: newEmp.id, name: newEmp.name, username: newEmp.username, role: newEmp.role, status: newEmp.status }
   });
 });
@@ -207,50 +313,42 @@ app.post('/api/auth/register', (req, res) => {
 // Staff list with deliveries & payroll stats
 app.get('/api/staff/employees', (req, res) => {
   const db = readDb();
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-
-  // 7 days ago
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  // Current month string YYYY-MM
-  const monthStr = now.toISOString().slice(0, 7);
-
-  const enrichedEmployees = (db.employees || []).map((emp: any) => {
-    // Filter orders delivered by this employee
-    const deliveredOrders = (db.orders || []).filter(
-      (o: any) => o.assignedTo === emp.id && o.status === 'delivered'
-    );
-
-    const deliveriesToday = deliveredOrders.filter(
-      (o: any) => (o.deliveredAt || o.createdAt || '').slice(0, 10) === todayStr
-    ).length;
-
-    const deliveriesWeek = deliveredOrders.filter((o: any) => {
-      const d = new Date(o.deliveredAt || o.createdAt || '');
-      return d >= sevenDaysAgo;
-    }).length;
-
-    const deliveriesMonth = deliveredOrders.filter(
-      (o: any) => (o.deliveredAt || o.createdAt || '').slice(0, 7) === monthStr
-    ).length;
-
-    const deliveriesTotal = deliveredOrders.length;
-    const rate = emp.commissionPerDelivery || 60;
-    const earningsToday = deliveriesToday * rate;
-    const earningsTotal = deliveriesTotal * rate;
-
-    return {
-      ...emp,
-      deliveriesToday,
-      deliveriesWeek,
-      deliveriesMonth,
-      deliveriesTotal,
-      earningsToday,
-      earningsTotal
-    };
-  });
-
+  const enrichedEmployees = (db.employees || []).map((emp: any) =>
+    computeEmployeeStats(emp, db.orders || [])
+  );
   res.json({ success: true, employees: enrichedEmployees });
+});
+
+// Admin can also create an already-active employee directly
+app.post('/api/staff/employees', (req, res) => {
+  const { name, username, password, phone, commissionPerDelivery = 60, role = 'staff', status = 'active' } = req.body;
+  if (!name || !username || !password) {
+    return res.status(400).json({ error: 'Nombre, usuario y contraseña son obligatorios' });
+  }
+
+  const db = readDb();
+  const exists = db.employees.find(
+    (e: any) => e.username.toLowerCase() === String(username).trim().toLowerCase()
+  );
+  if (exists) {
+    return res.status(409).json({ error: 'El nombre de usuario ya existe' });
+  }
+
+  const newEmp = {
+    id: `emp-${Date.now().toString().slice(-6)}`,
+    name: String(name).trim(),
+    username: String(username).trim(),
+    password: String(password).trim(),
+    role: role === 'admin' ? 'admin' : 'staff',
+    status: status || 'active',
+    commissionPerDelivery: Number(commissionPerDelivery) || 60,
+    phone: phone ? String(phone).trim() : '',
+    createdAt: new Date().toISOString()
+  };
+
+  db.employees.push(newEmp);
+  writeDb(db);
+  res.status(201).json({ success: true, employee: computeEmployeeStats(newEmp, db.orders || []) });
 });
 
 app.patch('/api/staff/employees/:id', (req, res) => {
@@ -260,16 +358,18 @@ app.patch('/api/staff/employees/:id', (req, res) => {
     return res.status(404).json({ error: 'Empleado no encontrado' });
   }
 
-  const { status, commissionPerDelivery, name, phone, role } = req.body;
+  const { status, commissionPerDelivery, name, username, password, phone, role } = req.body;
   if (status) emp.status = status;
   if (commissionPerDelivery !== undefined) emp.commissionPerDelivery = parseFloat(commissionPerDelivery);
-  if (name) emp.name = name;
-  if (phone) emp.phone = phone;
+  if (name) emp.name = String(name).trim();
+  if (username && emp.username.toLowerCase() !== 'calix') emp.username = String(username).trim();
+  if (password && String(password).trim().length > 0) emp.password = String(password).trim();
+  if (phone !== undefined) emp.phone = String(phone).trim();
   if (role && emp.username.toLowerCase() !== 'calix') emp.role = role;
 
   writeDb(db);
-  const { password: _, ...clean } = emp;
-  res.json({ success: true, employee: clean, message: 'Datos actualizados con éxito' });
+  const enriched = computeEmployeeStats(emp, db.orders || []);
+  res.json({ success: true, employee: enriched, message: 'Datos del empleado actualizados con éxito' });
 });
 
 app.delete('/api/staff/employees/:id', (req, res) => {
@@ -285,10 +385,10 @@ app.delete('/api/staff/employees/:id', (req, res) => {
 
   db.employees.splice(idx, 1);
   writeDb(db);
-  res.json({ success: true, message: 'Empleado eliminado' });
+  res.json({ success: true, message: 'Empleado eliminado del directorio' });
 });
 
-// --- 2. ORDERS & EXCLUSIVE LOCKING & VERIFICATION CODE ---
+// --- 2. ORDERS & EXCLUSIVE MUTEX LOCKING & 4-DIGIT PIN VERIFICATION ---
 
 app.get('/api/orders', (req, res) => {
   const db = readDb();
@@ -322,7 +422,7 @@ app.post('/api/orders', (req, res) => {
   const clientIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
 
   // Rate-limiting check to prevent order flooding / bots
-  if (!checkRateLimit(clientIp, 6, 5 * 60 * 1000)) {
+  if (!checkRateLimit(clientIp, 8, 5 * 60 * 1000)) {
     return res.status(429).json({
       error: 'Has enviado demasiados pedidos en poco tiempo. Por seguridad contra spam, espera unos minutos.'
     });
@@ -331,7 +431,7 @@ app.post('/api/orders', (req, res) => {
   // Check if restaurant is accepting orders
   if (db.settings && db.settings.isOpen === false) {
     return res.status(403).json({
-      error: 'En este momento la cocina de Brasa & Lúpulo no está recibiendo pedidos. Horario de atención: ' + (db.settings.openingHours || '19:30 a 01:30 hs')
+      error: 'En este momento la cocina de Brasa & Lúpulo se encuentra en pausa. Horario de atención: ' + (db.settings.openingHours || '19:30 a 01:30 hs')
     });
   }
 
@@ -341,15 +441,15 @@ app.post('/api/orders', (req, res) => {
     return res.status(400).json({ error: 'El pedido debe contener al menos un producto' });
   }
 
-  // Customer validation (prevent fake empty names or phone numbers)
+  // Customer validation
   if (!customer || !customer.name || customer.name.trim().length < 2) {
     return res.status(400).json({ error: 'Por favor ingresa un nombre válido para el pedido' });
   }
 
   const cleanPhone = (customer.phone || '').replace(/\D/g, '');
-  if (type === 'delivery' && cleanPhone.length < 8) {
+  if ((type === 'delivery' || type === 'takeaway') && cleanPhone.length < 8) {
     return res.status(400).json({
-      error: 'Por favor ingresa un número de teléfono / WhatsApp válido (mínimo 8 dígitos) para coordinar el delivery.'
+      error: 'Por favor ingresa un número de teléfono / WhatsApp válido (mínimo 8 dígitos).'
     });
   }
 
@@ -370,7 +470,7 @@ app.post('/api/orders', (req, res) => {
   const deliveryFee = type === 'delivery' ? (db.settings?.deliveryFee ?? 60) : 0;
   const total = subtotal + deliveryFee;
 
-  // Generate 4-digit secret verification code for delivery orders
+  // Generate 4-digit secret verification PIN for delivery & takeaway orders (not needed for dine-in table orders)
   const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
   const orderNum = Math.floor(1000 + Math.random() * 9000);
 
@@ -379,7 +479,7 @@ app.post('/api/orders', (req, res) => {
     orderNumber: `#${orderNum}`,
     type,
     tableNumber: type === 'table' ? (tableNumber || 1) : undefined,
-    verificationCode: type === 'delivery' ? verificationCode : undefined,
+    verificationCode: type === 'table' ? undefined : verificationCode,
     assignedTo: null,
     assignedToName: null,
     claimedAt: null,
@@ -391,7 +491,7 @@ app.post('/api/orders', (req, res) => {
     customer: {
       name: customer.name.trim(),
       phone: customer.phone ? customer.phone.trim() : '+598 99 000 000',
-      address: customer.address ? customer.address.trim() : 'Retiro en Local',
+      address: type === 'delivery' ? customer.address.trim() : type === 'table' ? `Mesa #${tableNumber || 1}` : 'Retiro en Local',
       notes: notes || customer.notes || ''
     },
     items,
@@ -406,17 +506,20 @@ app.post('/api/orders', (req, res) => {
     clientIp
   };
 
+  // Automatically deduct beer keg levels if any tap beers were ordered
+  deductKegsFromOrderItems(db, items);
+
   db.orders.unshift(newOrder);
   writeDb(db);
 
   res.status(201).json({
     success: true,
     order: newOrder,
-    message: '¡Pedido registrado con éxito en la cocina de Brasa & Lúpulo!'
+    message: '¡Pedido registrado en tiempo real en la cocina de Brasa & Lúpulo!'
   });
 });
 
-// Atomic claim / lock order by delivery driver or waiter
+// Atomic Mutex Lock: claim order by delivery driver or waiter
 app.post('/api/orders/:id/claim', (req, res) => {
   const { employeeId, employeeName } = req.body;
   if (!employeeId || !employeeName) {
@@ -430,32 +533,31 @@ app.post('/api/orders/:id/claim', (req, res) => {
     return res.status(404).json({ error: 'Pedido no encontrado' });
   }
 
-  // Security: check if order is locked due to fraud alert
   if (order.isFraudBlocked) {
     return res.status(403).json({
-      error: 'Este pedido está BLOQUEADO por alerta de seguridad. Solo el administrador Calix puede liberarlo.',
+      error: 'Este pedido está BLOQUEADO por alerta de seguridad. Solo Administración puede desbloquearlo.',
       isFraudBlocked: true
     });
   }
 
-  // Concurrency check: is it already claimed by someone else?
+  // Mutex Concurrency Check: reject if already claimed by another employee
   if (order.assignedTo && order.assignedTo !== employeeId) {
     return res.status(409).json({
-      error: `Este pedido ya fue tomado exclusivamente por ${order.assignedToName || 'otro compañero'}.`,
+      error: `Este pedido ya fue tomado y bloqueado por ${order.assignedToName || 'otro compañero'}.`,
       alreadyClaimed: true,
       assignedTo: order.assignedTo,
       assignedToName: order.assignedToName
     });
   }
 
-  // Lock order
+  // Lock order to employee
   order.assignedTo = employeeId;
   order.assignedToName = employeeName;
   order.claimedAt = new Date().toISOString();
 
-  // Find employee custom commission
+  // Attach employee's individual commission rate
   const emp = (db.employees || []).find((e: any) => e.id === employeeId);
-  if (emp && emp.commissionPerDelivery) {
+  if (emp && emp.commissionPerDelivery !== undefined) {
     order.deliveryCommission = emp.commissionPerDelivery;
   }
 
@@ -467,11 +569,11 @@ app.post('/api/orders/:id/claim', (req, res) => {
   res.json({
     success: true,
     order,
-    message: `¡Pedido ${order.orderNumber} tomado exclusivamente por ti!`
+    message: `¡Pedido ${order.orderNumber} asignado y bloqueado exclusivamente para ti!`
   });
 });
 
-// Deliver order with secret verification code check and anti-fraud brute-force prevention
+// Deliver order with 4-digit PIN verification for Delivery & Takeaway (Table requires no PIN)
 app.post('/api/orders/:id/deliver', (req, res) => {
   const { code, employeeId } = req.body;
   const db = readDb();
@@ -481,42 +583,40 @@ app.post('/api/orders/:id/deliver', (req, res) => {
     return res.status(404).json({ error: 'Pedido no encontrado' });
   }
 
-  // 1. Check if order is already blocked for fraud
   if (order.isFraudBlocked) {
     return res.status(403).json({
-      error: 'PEDIDO BLOQUEADO: Se superó el límite de intentos de verificación. Contacta a Calix en Administración.',
+      error: 'PEDIDO BLOQUEADO: Se superó el límite de intentos de PIN. Solicita desbloqueo en Administración.',
       isFraudBlocked: true
     });
   }
 
-  // 2. Validate courier ownership: only assigned driver or admin can deliver
+  // Validate ownership: only assigned employee or admin can finalize delivery
   if (employeeId && order.assignedTo && order.assignedTo !== employeeId) {
     const caller = (db.employees || []).find((e: any) => e.id === employeeId);
     if (!caller || caller.role !== 'admin') {
       return res.status(403).json({
-        error: `Acción no autorizada: Este pedido fue asignado a ${order.assignedToName}. Solo él puede entregarlo.`
+        error: `Acción no autorizada: Este pedido está bloqueado por ${order.assignedToName}.`
       });
     }
   }
 
-  // 3. Verification code check for delivery orders
-  if (order.type === 'delivery') {
+  // PIN Verification required for Delivery and Takeaway orders (Table orders do not require PIN)
+  if (order.type === 'delivery' || order.type === 'takeaway') {
     const expectedCode = String(order.verificationCode || '4921').trim();
     const submittedCode = String(code || '').trim();
-    const isMasterOverride = submittedCode.toLowerCase() === 'calixdev';
 
-    if (!submittedCode || (submittedCode !== expectedCode && !isMasterOverride)) {
+    if (!submittedCode || submittedCode !== expectedCode) {
       order.failedCodeAttempts = (order.failedCodeAttempts || 0) + 1;
-      const maxAttempts = db.settings?.maxFailedCodeAttempts || 5;
+      const maxAttempts = db.settings?.maxFailedCodeAttempts || 3;
 
       if (order.failedCodeAttempts >= maxAttempts) {
         order.isFraudBlocked = true;
         order.status = 'fraud_alert';
-        order.fraudReason = `Alerta de Seguridad: Se superaron los ${maxAttempts} intentos de código fallidos.`;
+        order.fraudReason = `Alerta de Seguridad: Se superaron los ${maxAttempts} intentos de PIN fallidos.`;
         writeDb(db);
 
         return res.status(403).json({
-          error: `ALERTA DE SEGURIDAD: Superaste los ${maxAttempts} intentos permitidos. El pedido ha sido BLOQUEADO para evitar fraudes. Desbloquéalo en Administración.`,
+          error: `ALERTA DE SEGURIDAD: Superaste los ${maxAttempts} intentos permitidos. El pedido ha sido BLOQUEADO por seguridad.`,
           isFraudBlocked: true,
           failedCodeAttempts: order.failedCodeAttempts
         });
@@ -525,25 +625,30 @@ app.post('/api/orders/:id/deliver', (req, res) => {
       writeDb(db);
       const remaining = maxAttempts - order.failedCodeAttempts;
       return res.status(400).json({
-        error: `Código incorrecto (ingresaste "${submittedCode}"). Verifica el código de 4 dígitos del cliente. Te quedan ${remaining} intento(s).`,
+        error: `PIN incorrecto. Solicita al cliente el código PIN de 4 dígitos de su seguimiento. Intentos restantes: ${remaining}.`,
         remainingAttempts: remaining
       });
     }
   }
 
-  // Delivery verified successfully
+  // Delivery verified & finalized
   order.status = 'delivered';
   order.deliveredAt = new Date().toISOString();
   order.failedCodeAttempts = 0;
   if (employeeId && !order.assignedTo) {
     order.assignedTo = employeeId;
+    const emp = (db.employees || []).find((e: any) => e.id === employeeId);
+    if (emp) {
+      order.assignedToName = emp.name;
+      order.deliveryCommission = emp.commissionPerDelivery || 60;
+    }
   }
 
   writeDb(db);
   res.json({
     success: true,
     order,
-    message: '¡Entrega confirmada y registrada en el sistema!'
+    message: '¡Entrega verificada y acreditada en tu liquidación del día!'
   });
 });
 
@@ -559,7 +664,7 @@ app.post('/api/orders/:id/unblock-fraud', (req, res) => {
   order.status = order.type === 'delivery' ? 'in_transit' : 'kitchen';
 
   writeDb(db);
-  res.json({ success: true, order, message: 'Pedido desbloqueado por el Administrador' });
+  res.json({ success: true, order, message: 'Pedido desbloqueado por Administración' });
 });
 
 app.patch('/api/orders/:id/status', (req, res) => {
@@ -574,7 +679,9 @@ app.patch('/api/orders/:id/status', (req, res) => {
   if (status) order.status = status;
   if (assignedTo !== undefined) order.assignedTo = assignedTo;
   if (assignedToName !== undefined) order.assignedToName = assignedToName;
-  if (status === 'delivered') order.deliveredAt = new Date().toISOString();
+  if (status === 'delivered' && !order.deliveredAt) {
+    order.deliveredAt = new Date().toISOString();
+  }
 
   writeDb(db);
   res.json({ success: true, order, message: `Estado actualizado a: ${status}` });
@@ -589,7 +696,7 @@ app.get('/api/menu', (req, res) => {
 
 app.post('/api/menu', (req, res) => {
   const db = readDb();
-  const { name, category, price, description, image, badge, isPopular, isSpicy, isVeggie, isGlutenFree, ingredients, pairingSuggestion } = req.body;
+  const { name, category, price, description, image, badge, available, isPopular, isSpicy, isVeggie, isGlutenFree, cookingTime, ingredients, pairingSuggestion } = req.body;
 
   if (!name || !price || !category) {
     return res.status(400).json({ error: 'Nombre, precio y categoría son obligatorios' });
@@ -603,6 +710,8 @@ app.post('/api/menu', (req, res) => {
     description: description || '',
     image: image || 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
     badge: badge || '',
+    available: available !== undefined ? Boolean(available) : true,
+    cookingTime: cookingTime || '12-15 min',
     isPopular: Boolean(isPopular),
     isSpicy: Boolean(isSpicy),
     isVeggie: Boolean(isVeggie),
@@ -623,13 +732,15 @@ app.put('/api/menu/:id', (req, res) => {
     return res.status(404).json({ error: 'Plato no encontrado' });
   }
 
-  const { name, category, price, description, image, badge, isPopular, isSpicy, isVeggie, isGlutenFree, ingredients, pairingSuggestion } = req.body;
+  const { name, category, price, description, image, badge, available, cookingTime, isPopular, isSpicy, isVeggie, isGlutenFree, ingredients, pairingSuggestion } = req.body;
   if (name) item.name = name.trim();
   if (category) item.category = category;
   if (price !== undefined) item.price = parseFloat(price);
   if (description !== undefined) item.description = description;
   if (image) item.image = image;
   if (badge !== undefined) item.badge = badge;
+  if (available !== undefined) item.available = Boolean(available);
+  if (cookingTime !== undefined) item.cookingTime = cookingTime;
   if (isPopular !== undefined) item.isPopular = isPopular;
   if (isSpicy !== undefined) item.isSpicy = isSpicy;
   if (isVeggie !== undefined) item.isVeggie = isVeggie;
@@ -663,7 +774,7 @@ app.get('/api/promos', (req, res) => {
 
 app.post('/api/promos', (req, res) => {
   const db = readDb();
-  const { title, subtitle, description, priceNow, priceOld, discount, pill, image, badge } = req.body;
+  const { title, subtitle, description, priceNow, priceOld, discount, pill, image, badge, active } = req.body;
 
   if (!title || !priceNow) {
     return res.status(400).json({ error: 'Título y precio son obligatorios' });
@@ -675,11 +786,12 @@ app.post('/api/promos', (req, res) => {
     subtitle: subtitle || '',
     description: description || '',
     priceNow: parseFloat(priceNow),
-    priceOld: priceOld ? parseFloat(priceOld) : parseFloat(priceNow) * 1.3,
+    priceOld: priceOld ? parseFloat(priceOld) : Math.round(parseFloat(priceNow) * 1.3),
     discount: discount || 'Oferta',
     pill: pill || 'Promoción',
     image: image || 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80',
-    badge: badge || 'Disponible'
+    badge: badge || 'Disponible',
+    active: active !== undefined ? Boolean(active) : true
   };
 
   db.promos.push(newPromo);
@@ -710,7 +822,7 @@ app.delete('/api/promos/:id', (req, res) => {
   res.json({ success: true, message: 'Promoción eliminada' });
 });
 
-// --- 5. TAPS, RESERVATIONS, REVIEWS & SOMMELIER ---
+// --- 5. TAPS, WAITER CALLS, RESERVATIONS, REVIEWS & SOMMELIER ---
 
 app.get('/api/taps', (req, res) => {
   const db = readDb();
@@ -740,7 +852,7 @@ app.post('/api/taps', (req, res) => {
     temperature: temperature || '3.0°C',
     kegPercentage: kegPercentage !== undefined ? parseInt(kegPercentage, 10) : 100,
     pricePinta: parseFloat(pricePinta),
-    priceGrowler: priceGrowler ? parseFloat(priceGrowler) : parseFloat(pricePinta) * 2.7,
+    priceGrowler: priceGrowler ? parseFloat(priceGrowler) : Math.round(parseFloat(pricePinta) * 2.7),
     status: status || 'activa',
     color: color || 'dorado-ambar',
     tastingNotes: Array.isArray(tastingNotes) ? tastingNotes : (tastingNotes || '').split(',').map((s: string) => s.trim()).filter(Boolean),
@@ -792,14 +904,63 @@ app.delete('/api/taps/:id', (req, res) => {
   res.json({ success: true, message: 'Canilla eliminada de la pizarra' });
 });
 
+// Staff / Bar dispatch pour from keg
 app.post('/api/taps/:id/pour', (req, res) => {
   const db = readDb();
   const tap = db.taps.find((t: any) => t.id === req.params.id);
   if (!tap) return res.status(404).json({ error: 'Canilla no encontrada' });
-  tap.kegPercentage = Math.max(0, tap.kegPercentage - 2);
-  if (tap.kegPercentage < 15) tap.status = 'ultimas_pintas';
+  const amount = req.body?.size === 'growler' ? 5 : 2;
+  tap.kegPercentage = Math.max(0, tap.kegPercentage - amount);
+  if (tap.kegPercentage <= 20) tap.status = 'ultimas_pintas';
   writeDb(db);
-  res.json({ success: true, tap });
+  res.json({ success: true, tap, message: 'Despacho de barra registrado en el barril' });
+});
+
+// Admin / Staff reload keg to 100%
+app.post('/api/taps/:id/refill', (req, res) => {
+  const db = readDb();
+  const tap = db.taps.find((t: any) => t.id === req.params.id);
+  if (!tap) return res.status(404).json({ error: 'Canilla no encontrada' });
+  tap.kegPercentage = 100;
+  tap.status = 'activa';
+  writeDb(db);
+  res.json({ success: true, tap, message: `Barril de ${tap.name} recargado al 100%` });
+});
+
+// Waiter / Table Calls (Real-time alerts for Mozos & Staff)
+app.get('/api/table/call-waiter', (req, res) => {
+  const db = readDb();
+  res.json({ success: true, calls: db.waiterCalls || [] });
+});
+
+app.post('/api/table/call-waiter', (req, res) => {
+  const db = readDb();
+  const { tableNumber = 1, reason = 'Llamado al Mozo', customerName = '' } = req.body;
+  const newCall = {
+    id: `CALL-${Date.now().toString().slice(-5)}`,
+    tableNumber: Number(tableNumber) || 1,
+    reason,
+    customerName,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+  db.waiterCalls.unshift(newCall);
+  writeDb(db);
+  res.status(201).json({
+    success: true,
+    call: newCall,
+    message: `¡Aviso enviado al personal de salón para la Mesa #${tableNumber}!`
+  });
+});
+
+app.post('/api/table/call-waiter/:id/attend', (req, res) => {
+  const db = readDb();
+  const call = (db.waiterCalls || []).find((c: any) => c.id === req.params.id);
+  if (!call) return res.status(404).json({ error: 'Alerta de mesa no encontrada' });
+  call.status = 'attended';
+  call.attendedBy = req.body?.employeeName || 'Personal de Salón';
+  writeDb(db);
+  res.json({ success: true, call, message: `Mesa #${call.tableNumber} marcada como atendida` });
 });
 
 app.get('/api/reservations', (req, res) => {
@@ -862,16 +1023,6 @@ app.post('/api/reviews', (req, res) => {
   res.status(201).json({ success: true, review: newReview });
 });
 
-app.post('/api/table/call-waiter', (req, res) => {
-  const { tableNumber, reason = 'Atención en mesa' } = req.body;
-  res.json({
-    success: true,
-    message: `¡Mozo notificado para la Mesa ${tableNumber || 1}!`,
-    tableNumber,
-    timestamp: new Date().toLocaleTimeString()
-  });
-});
-
 app.post('/api/ai/sommelier', async (req, res) => {
   try {
     const { userPreference, selectedDish } = req.body;
@@ -881,11 +1032,11 @@ app.post('/api/ai/sommelier', async (req, res) => {
       return res.json({
         success: true,
         recommendation: {
-          beerName: "Furia Citra IPA (Tap 1)",
-          dishName: selectedDish || "Smash Brasa Doble Cheddar",
-          whyItWorks: "El amargor lupulado y los aromas cítricos cortan la untuosidad del queso cheddar fundido y la panceta crocante, limpiando el paladar en cada bocado.",
-          tastingNotes: ["Cítrico", "Lúpulo fresco", "Contraste de grasas perfecto"],
-          servingTemp: "2.8°C en vaso pinta cervecera helada"
+          beerName: 'Furia Citra IPA (Tap 1)',
+          dishName: selectedDish || 'Smash Brasa Doble Cheddar',
+          whyItWorks: 'El amargor lupulado y los aromas cítricos cortan la untuosidad del queso cheddar fundido y la panceta crocante, limpiando el paladar en cada bocado.',
+          tastingNotes: ['Cítrico', 'Lúpulo fresco', 'Contraste de grasas perfecto'],
+          servingTemp: '2.8°C en vaso pinta cervecera helada'
         }
       });
     }
@@ -915,11 +1066,11 @@ Responde en formato JSON con:
     res.json({
       success: true,
       recommendation: {
-        beerName: "Roble & Malta Scottish (Tap 3)",
-        dishName: "Pizza Pepperoni & Miel Picante",
-        whyItWorks: "Las notas a caramelo toffee de la Scottish equilibran el toque picante de la miel y el crocante del horno de leña.",
-        tastingNotes: ["Toffee acaramelado", "Picor balanceado", "Piso de piedra"],
-        servingTemp: "3.5°C en copa cervecera"
+        beerName: 'Roble & Malta Scottish (Tap 3)',
+        dishName: 'Pizza Pepperoni & Miel Picante',
+        whyItWorks: 'Las notas a caramelo toffee de la Scottish equilibran el toque picante de la miel y el crocante del horno de leña.',
+        tastingNotes: ['Toffee acaramelado', 'Picor balanceado', 'Piso de piedra'],
+        servingTemp: '3.5°C en copa cervecera'
       }
     });
   }
@@ -942,7 +1093,7 @@ async function startServer() {
   }
 
   app.listen(port, '0.0.0.0', () => {
-    console.log(`[Brasa & Lúpulo] Servidor iniciado en http://0.0.0.0:${port}`);
+    console.log(`[Brasa & Lúpulo] Servidor POS en ejecución en http://0.0.0.0:${port}`);
   });
 }
 

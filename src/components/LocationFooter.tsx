@@ -1,8 +1,12 @@
 import React from 'react';
-import { MapPin, Clock, Truck, CreditCard, Phone, Instagram } from 'lucide-react';
+import { MapPin, Clock, Truck, CreditCard, Phone, Instagram, Lock } from 'lucide-react';
 import { InteractiveMap } from './InteractiveMap';
 
-export const LocationFooter: React.FC = () => {
+interface LocationFooterProps {
+  onOpenStaffPortal?: () => void;
+}
+
+export const LocationFooter: React.FC<LocationFooterProps> = ({ onOpenStaffPortal }) => {
   return (
     <>
       <section id="contacto" className="py-12 border-t border-stone-800">
@@ -96,10 +100,10 @@ export const LocationFooter: React.FC = () => {
         href="https://wa.me/59899887766?text=Hola%20Brasa%20%26%20L%C3%BApulo!%20Quiero%20hacer%20un%20pedido%20o%20consulta"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs uppercase tracking-wider shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 animate-ring"
+        className="fixed bottom-6 right-6 z-40 px-5 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs uppercase tracking-wider shadow-2xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
       >
         <Phone className="w-4 h-4 fill-stone-950" />
-        <span>WhatsApp Pedidos ➔</span>
+        <span>WhatsApp Pedidos</span>
       </a>
 
       {/* Footer */}
@@ -109,7 +113,7 @@ export const LocationFooter: React.FC = () => {
             <span className="font-display font-bold text-white uppercase text-sm tracking-wider">
               Brasa & Lúpulo
             </span>
-            <span>•</span>
+            <span>·</span>
             <span>Tacuarembó, Uruguay</span>
           </div>
 
@@ -117,11 +121,21 @@ export const LocationFooter: React.FC = () => {
             Smash burgers hechas a mano, masas de fermentación natural al horno de leña y cervezas artesanales tiradas al instante.
           </p>
 
-          {/* CalixDev Original Author Credit */}
-          <div className="pt-2">
+          {/* CalixDev Original Author Credit & Discrete Staff Access */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
             <div className="inline-block px-4 py-2 rounded-full bg-stone-900 border border-stone-800 text-[11px] text-stone-300">
-              Desarrollado y optimizado por <strong className="text-sky-400 font-bold">CalixDev</strong> • Landing Page Pro Ultra
+              Desarrollado y optimizado por <strong className="text-sky-400 font-bold">CalixDev</strong> · Sistema Gastronómico POS
             </div>
+
+            {onOpenStaffPortal && (
+              <button
+                onClick={onOpenStaffPortal}
+                className="px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-stone-800 text-[11px] text-stone-400 hover:text-stone-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Lock className="w-3 h-3" />
+                <span>Acceso Personal / Staff</span>
+              </button>
+            )}
           </div>
 
           <div className="text-[10px] text-stone-600">

@@ -11,6 +11,8 @@ import {
   Sparkles,
   QrCode,
   KeyRound,
+  Lock,
+  Bell,
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { Order } from '../types/restaurant';
@@ -23,6 +25,7 @@ interface HeaderProps {
   onSelectTable: (table: number | null) => void;
   currentPath: string;
   onNavigate: (path: string) => void;
+  onOpenStaffPortal: () => void;
   activeCustomerOrder: Order | null;
   onOpenOrderTracker: () => void;
 }
@@ -35,12 +38,14 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTable,
   currentPath,
   onNavigate,
+  onOpenStaffPortal,
   activeCustomerOrder,
   onOpenOrderTracker,
 }) => {
   const [isAmbienceOn, setIsAmbienceOn] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('Happy Hour hoy 19:30 hs');
+  const [waiterNotified, setWaiterNotified] = useState(false);
 
   const toggleSound = () => {
     const active = sound.toggleAmbience();
@@ -62,31 +67,44 @@ export const Header: React.FC<HeaderProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const handleQuickCallWaiter = async () => {
+    if (!currentTable) return;
+    try {
+      await fetch('/api/table/call-waiter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tableNumber: currentTable,
+          reason: 'Llamado al Mozo',
+        }),
+      });
+      sound.playChime();
+      setWaiterNotified(true);
+      setTimeout(() => setWaiterNotified(false), 4000);
+    } catch (e) {}
+  };
+
   return (
     <>
-      {/* Top Status & Announcement Bar (100% Customer Facing) */}
+      {/* Top Status & Utility Bar */}
       <div className="bg-gradient-to-r from-stone-950 via-zinc-900 to-stone-950 border-b border-stone-800/80 px-4 py-2 text-xs text-stone-300">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
             <span className="font-semibold text-stone-200">
               Abierto hoy 19:30 a 01:30 hs
             </span>
-            <span className="text-stone-600 hidden sm:inline">•</span>
+            <span className="text-stone-600 hidden sm:inline">·</span>
             <span className="text-amber-400 font-medium hidden sm:flex items-center gap-1">
               <Clock className="w-3 h-3" />
               <span>{timeRemaining}</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Table selector indicator for customers dining in */}
             <div className="flex items-center gap-1 text-[11px] bg-stone-900 border border-stone-800 px-2 py-0.5 rounded-lg">
               <QrCode className="w-3 h-3 text-orange-400" />
-              <span className="text-stone-400">Modalidad:</span>
+              <span className="text-stone-400 hidden sm:inline">Modalidad:</span>
               <select
                 value={currentTable ?? ''}
                 onChange={(e) =>
@@ -97,13 +115,23 @@ export const Header: React.FC<HeaderProps> = ({
                 <option value="" className="bg-stone-900 text-stone-200">
                   Delivery / Para Llevar
                 </option>
-                {[1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16].map((num) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((num) => (
                   <option key={num} value={num} className="bg-stone-900 text-stone-200">
                     Mesa #{num} (Salón/Patio)
                   </option>
                 ))}
               </select>
             </div>
+
+            {currentTable && (
+              <button
+                onClick={handleQuickCallWaiter}
+                className="flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Bell className="w-3 h-3 text-amber-400" />
+                <span>{waiterNotified ? '¡Mozo en camino!' : `Llamar Mozo (#${currentTable})`}</span>
+              </button>
+            )}
 
             {/* Fire ambience toggle */}
             <button
@@ -116,13 +144,23 @@ export const Header: React.FC<HeaderProps> = ({
               title="Sonido ambiente de brasas y plancha"
             >
               {isAmbienceOn ? (
-                <Volume2 className="w-3 h-3 text-orange-400 animate-pulse" />
+                <Volume2 className="w-3 h-3 text-orange-400" />
               ) : (
                 <VolumeX className="w-3 h-3" />
               )}
               <span className="hidden md:inline">
                 Ambiente {isAmbienceOn ? 'ON' : 'OFF'}
               </span>
+            </button>
+
+            {/* Discrete Staff Login Button (Closed Authentication Only) */}
+            <button
+              onClick={onOpenStaffPortal}
+              className="flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-800 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+              title="Acceso cerrado exclusivo para personal y administración"
+            >
+              <Lock className="w-3 h-3 text-stone-500" />
+              <span>Acceso Personal / Staff</span>
             </button>
           </div>
         </div>
@@ -134,28 +172,23 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Brand Logo */}
           <button
             onClick={() => onNavigate('/')}
-            className="flex items-center gap-2 sm:gap-3 group text-left min-w-0 cursor-pointer"
+            className="flex items-center gap-2 sm:gap-3 group text-left min-w-0 cursor-pointer shrink-0"
           >
             <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-orange-500 p-[1.5px] shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300 shrink-0">
               <div className="w-full h-full bg-stone-950 rounded-[10px] flex items-center justify-center">
-                <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 animate-flame" />
+                <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
               </div>
             </div>
-            <div className="flex flex-col truncate">
-              <span className="font-display text-lg sm:text-2xl font-bold tracking-wider text-white uppercase leading-none truncate">
-                Brasa <span className="text-orange-500">&</span> Lúpulo
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-amber-500 mt-1 truncate">
-                Smash Burgers • Horno de Barro • Birra
-              </span>
-            </div>
+            <span className="font-display text-lg sm:text-2xl font-bold tracking-wider text-white uppercase leading-none whitespace-nowrap">
+              Brasa <span className="text-orange-500">&</span> Lúpulo
+            </span>
           </button>
 
           {/* Navigation Links - Customer Subpages */}
-          <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-stone-300">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-stone-300">
             <button
               onClick={() => onNavigate('/')}
-              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
@@ -165,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               onClick={() => onNavigate('/menu')}
-              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/menu'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
@@ -175,39 +208,37 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               onClick={() => onNavigate('/promos')}
-              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/promos'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
               }`}
             >
-              Promos
+              Promociones
             </button>
             <button
               onClick={() => onNavigate('/canillas')}
-              className={`hover:text-orange-400 flex items-center gap-1 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/canillas'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
               }`}
             >
-              <Beer className="w-3.5 h-3.5 text-amber-400" />
-              <span>Canillas (8)</span>
+              Canillas
             </button>
             <button
               onClick={() => onNavigate('/armar-burger')}
-              className={`hover:text-amber-400 text-amber-300 flex items-center gap-1 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-amber-400 text-amber-300 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/armar-burger'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Armá tu Burger</span>
+              Laboratorio Smash
             </button>
             <button
               onClick={() => onNavigate('/reservas')}
-              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer ${
+              className={`hover:text-orange-400 transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0 ${
                 currentPath === '/reservas'
                   ? 'text-amber-400 border-b-2 border-amber-400 font-bold'
                   : ''
@@ -219,25 +250,31 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Customer Action CTAs */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Active Order & Secret Verification Code Button for Customer */}
+            {/* Active Order & Secret Verification PIN Button for Customer */}
             {activeCustomerOrder && (
               <button
                 onClick={onOpenOrderTracker}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
-                title="Ver estado de tu pedido y tu código de entrega de 4 dígitos"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+                title="Ver estado de tu pedido y tu código PIN de 4 dígitos"
               >
                 <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden md:inline">Código Entrega:</span>
-                <span className="font-mono font-black text-amber-400">
-                  {activeCustomerOrder.verificationCode || '4921'}
-                </span>
+                {activeCustomerOrder.type !== 'table' ? (
+                  <>
+                    <span className="hidden md:inline">PIN Entrega:</span>
+                    <span className="font-mono font-black text-amber-400 tabular-nums">
+                      {activeCustomerOrder.verificationCode || '4921'}
+                    </span>
+                  </>
+                ) : (
+                  <span>Mesa #{activeCustomerOrder.tableNumber || 1}</span>
+                )}
               </button>
             )}
 
             {/* AI Sommelier button */}
             <button
               onClick={onOpenSommelier}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all shadow-sm shrink-0 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold transition-all shadow-sm shrink-0 cursor-pointer whitespace-nowrap"
               title="Recomendador de maridaje con Inteligencia Artificial"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -247,12 +284,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Shopping Cart Button */}
             <button
               onClick={onOpenCart}
-              className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-lg shadow-orange-600/25 transition-all active:scale-95 shrink-0 cursor-pointer"
+              className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-lg shadow-orange-600/25 transition-all active:scale-95 shrink-0 cursor-pointer whitespace-nowrap"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Mi Pedido</span>
               {cartCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-white text-orange-600 font-black text-[11px] flex items-center justify-center shadow">
+                <span className="w-5 h-5 rounded-full bg-white text-orange-600 font-black text-[11px] flex items-center justify-center shadow tabular-nums">
                   {cartCount}
                 </span>
               )}
@@ -283,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-stone-900/60 hover:bg-stone-800'
                 }`}
               >
-                🏠 Inicio
+                Inicio
               </button>
               <button
                 onClick={() => {
@@ -296,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-stone-900/60 hover:bg-stone-800'
                 }`}
               >
-                🍔 Carta Completa
+                Carta Completa
               </button>
               <button
                 onClick={() => {
@@ -309,7 +346,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-stone-900/60 hover:bg-stone-800'
                 }`}
               >
-                🔥 Promociones
+                Promociones
               </button>
               <button
                 onClick={() => {
@@ -336,7 +373,7 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
                 }`}
               >
-                ✨ Armá tu Burger
+                Laboratorio Smash
               </button>
               <button
                 onClick={() => {
@@ -349,7 +386,20 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-stone-900/60 hover:bg-stone-800'
                 }`}
               >
-                📅 Reservar Mesa
+                Reservar Mesa
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-stone-800/80 flex justify-end">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenStaffPortal();
+                }}
+                className="px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-stone-400 hover:text-white text-xs font-semibold flex items-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Acceso Personal / Staff</span>
               </button>
             </div>
           </div>

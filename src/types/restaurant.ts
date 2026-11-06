@@ -9,6 +9,7 @@ export interface MenuItem {
   description: string;
   image: string;
   badge?: string;
+  available?: boolean;
   isPopular?: boolean;
   isSpicy?: boolean;
   isVeggie?: boolean;
@@ -47,6 +48,7 @@ export interface Promo {
   pill: string;
   image: string;
   badge: string;
+  active?: boolean;
 }
 
 export interface CartItem {
@@ -57,6 +59,7 @@ export interface CartItem {
   image?: string;
   customNotes?: string;
   category?: string;
+  tapId?: string;
 }
 
 export interface RestaurantSettings {
@@ -72,6 +75,7 @@ export interface RestaurantSettings {
   minOrderAmount: number;
   requirePhoneValidation: boolean;
   maxFailedCodeAttempts: number;
+  featuredAnnouncement?: string;
 }
 
 export interface Order {
@@ -79,11 +83,11 @@ export interface Order {
   orderNumber: string;
   type: 'delivery' | 'takeaway' | 'table';
   tableNumber?: number;
-  verificationCode?: string; // Secret 4-digit verification code
-  assignedTo?: string; // Employee ID claiming the order
-  assignedToName?: string; // Driver / Waiter name
-  claimedAt?: string;
-  deliveredAt?: string;
+  verificationCode?: string; // Secret 4-digit verification PIN for delivery & takeaway
+  assignedTo?: string | null; // Employee ID claiming the order
+  assignedToName?: string | null; // Driver / Waiter name
+  claimedAt?: string | null;
+  deliveredAt?: string | null;
   deliveryCommission?: number;
   failedCodeAttempts?: number;
   isFraudBlocked?: boolean;
@@ -112,7 +116,7 @@ export interface Employee {
   username: string;
   password?: string;
   role: 'admin' | 'delivery' | 'staff';
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'active' | 'approved' | 'rejected';
   commissionPerDelivery: number;
   phone?: string;
   createdAt: string;
@@ -121,7 +125,19 @@ export interface Employee {
   deliveriesMonth?: number;
   deliveriesTotal?: number;
   earningsToday?: number;
+  earningsWeek?: number;
+  earningsMonth?: number;
   earningsTotal?: number;
+}
+
+export interface WaiterCall {
+  id: string;
+  tableNumber: number;
+  reason: 'Llamado al Mozo' | 'Pedir la Cuenta' | string;
+  customerName?: string;
+  status: 'pending' | 'attended';
+  createdAt: string;
+  attendedBy?: string;
 }
 
 export interface Reservation {

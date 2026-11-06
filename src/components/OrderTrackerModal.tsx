@@ -1,37 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import {
-  X, CheckCircle2, Clock, ChefHat, Flame, Truck,
-  ShoppingBag, Phone, RefreshCw, AlertCircle
+  X, CheckCircle2, ChefHat, Flame, Truck,
+  ShoppingBag, Bell, Receipt
 } from 'lucide-react';
 import { Order } from '../types/restaurant';
+import { sound } from '../utils/audio';
 
 interface OrderTrackerModalProps {
   order: Order | null;
   onClose: () => void;
-  onRefreshOrder?: (orderId: string) => void;
 }
 
 export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
   order,
   onClose,
-  onRefreshOrder,
 }) => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(order);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [waiterMessage, setWaiterMessage] = useState<string | null>(null);
+  const [sendingCall, setSendingCall] = useState(false);
 
   useEffect(() => {
     setCurrentOrder(order);
   }, [order]);
 
+  // Poll order status in real time while modal is open
+  useEffect(() => {
+    if (!currentOrder?.id) return;
+    const syncOrder = async () => {
+      try {
+        const res = await fetch(`/api/orders/${currentOrder.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order) setCurrentOrder(data.order);
+        }
+      } catch (e) {}
+    };
+    const interval = setInterval(syncOrder, 4000);
+    return () => clearInterval(interval);
+  }, [currentOrder?.id]);
+
   if (!currentOrder) return null;
 
-  // Status mapping
   const steps = [
-    { key: 'received', label: 'Recibido', desc: 'Comanda confirmada en caja', icon: CheckCircle2 },
+    { key: 'received', label: 'Recibido', desc: 'Comanda registrada en caja central', icon: CheckCircle2 },
     { key: 'kitchen', label: 'En Plancha', desc: 'Smash burgers aplastándose al hierro', icon: ChefHat },
-    { key: 'oven', label: 'Horno de Barro', desc: 'Pizzas cociéndose a la leña', icon: Flame },
-    { key: 'ready', label: 'Listo / En Camino', desc: 'Saliendo para tu mesa o domicilio', icon: Truck },
-    { key: 'delivered', label: 'Entregado', desc: '¡A disfrutar con una birra!', icon: ShoppingBag },
+    { key: 'oven', label: 'Horno de Barro', desc: 'Cocción a leña a 420°C', icon: Flame },
+    { key: 'ready', label: 'Listo / En Camino', desc: 'Despachado hacia tu mesa o domicilio', icon: Truck },
+    { key: 'delivered', label: 'Entregado', desc: 'Pedido finalizado', icon: ShoppingBag },
   ];
 
   const getStepIndex = (status: string) => {
@@ -39,36 +54,38 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
       case 'received': return 0;
       case 'kitchen': return 1;
       case 'oven': return 2;
-      case 'ready': return 3;
+      case 'ready':
+      case 'in_transit': return 3;
       case 'delivered': return 4;
       default: return 0;
     }
   };
 
   const activeIdx = getStepIndex(currentOrder.status);
+  const requiresPin = currentOrder.type === 'delivery' || currentOrder.type === 'takeaway';
 
-  // Advance status simulation
-  const handleAdvanceStatus = async () => {
-    const nextStatuses = ['received', 'kitchen', 'oven', 'ready', 'delivered'];
-    const nextIdx = Math.min(nextStatuses.length - 1, activeIdx + 1);
-    const nextStatus = nextStatuses[nextIdx];
-
-    setIsUpdating(true);
+  const handleCallWaiter = async (reason: string) => {
+    setSendingCall(true);
+    setWaiterMessage(null);
     try {
-      const res = await fetch(`/api/orders/${currentOrder.id}/status`, {
-        method: 'PATCH',
+      const res = await fetch('/api/table/call-waiter', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({
+          tableNumber: currentOrder.tableNumber || 1,
+          reason,
+          customerName: currentOrder.customer.name,
+        }),
       });
       const data = await res.json();
-      if (res.ok && data.order) {
-        setCurrentOrder(data.order);
-        if (onRefreshOrder) onRefreshOrder(currentOrder.id);
+      if (res.ok) {
+        sound.playChime();
+        setWaiterMessage(data.message || `Aviso enviado a los mozos (${reason})`);
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setIsUpdating(false);
+      setSendingCall(false);
     }
   };
 
@@ -80,20 +97,17 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-stone-950/80 hover:bg-stone-800 text-stone-400 hover:text-white transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full bg-stone-950/80 hover:bg-stone-800 text-stone-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-              Seguimiento en Vivo
-            </span>
-            <span className="text-xs text-stone-400 font-mono">
-              Comanda {currentOrder.orderNumber}
-            </span>
+          <div className="flex items-center gap-2 text-xs text-stone-400">
+            <span className="font-bold uppercase text-orange-400">Seguimiento en Tiempo Real</span>
+            <span>·</span>
+            <span className="font-mono">Comanda {currentOrder.orderNumber}</span>
           </div>
 
           <h2 className="font-display text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">
@@ -101,29 +115,63 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
           </h2>
           <p className="text-xs text-stone-400">
             {currentOrder.type === 'delivery'
-              ? `Delivery a Tacuarembó (${currentOrder.customer.address})`
+              ? `Delivery a domicilio: ${currentOrder.customer.address}`
               : currentOrder.type === 'table'
-              ? `Servicio en Mesa #${currentOrder.tableNumber}`
-              : 'Retiro en Local'}
+              ? `Servicio en Salón · Mesa #${currentOrder.tableNumber || 1}`
+              : 'Retiro en Mostrador del Local (Takeaway)'}
           </p>
         </div>
 
-        {/* Verification Code Box for Delivery */}
-        {currentOrder.type === 'delivery' && (
+        {/* 4-Digit Security PIN Box for Delivery and Takeaway */}
+        {requiresPin && (
           <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-500/15 border border-amber-500/40 space-y-1.5 text-center">
             <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
-              🔑 Tu Código Secreto de Entrega
+              Código PIN de Seguridad (4 Dígitos)
             </span>
-            <div className="font-mono text-3xl font-black tracking-widest text-white ember-glow">
+            <div className="font-mono text-3xl font-black tracking-widest text-white ember-glow tabular-nums">
               {currentOrder.verificationCode || '4921'}
             </div>
             <p className="text-[11px] text-stone-300">
-              Menciónale este código al repartidor al recibir tu pedido para que confirme la entrega en su app.
+              {currentOrder.type === 'delivery'
+                ? 'Díctale este PIN único al repartidor en tu puerta para que pueda confirmar la entrega.'
+                : 'Presenta este PIN único en mostrador al retirar tu pedido.'}
             </p>
             {currentOrder.assignedToName && (
               <div className="pt-2 text-xs text-emerald-400 font-bold flex items-center justify-center gap-1.5">
                 <Truck className="w-4 h-4" />
-                <span>Repartidor en camino: {currentOrder.assignedToName}</span>
+                <span>Personal asignado: {currentOrder.assignedToName}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Table Service Actions (Llamar al Mozo / Pedir la Cuenta) */}
+        {currentOrder.type === 'table' && (
+          <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 space-y-3">
+            <div className="text-xs text-stone-300 font-semibold">
+              Atención en Mesa #{currentOrder.tableNumber || 1}:
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleCallWaiter('Llamado al Mozo')}
+                disabled={sendingCall}
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Bell className="w-4 h-4" />
+                <span>Llamar al Mozo</span>
+              </button>
+              <button
+                onClick={() => handleCallWaiter('Pedir la Cuenta')}
+                disabled={sendingCall}
+                className="min-h-[44px] py-2.5 px-3 rounded-xl bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 text-orange-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Receipt className="w-4 h-4" />
+                <span>Pedir la Cuenta</span>
+              </button>
+            </div>
+            {waiterMessage && (
+              <div className="text-xs text-emerald-400 font-semibold text-center">
+                {waiterMessage}
               </div>
             )}
           </div>
@@ -176,39 +224,35 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
         {/* Items summary */}
         <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 space-y-2 text-xs">
           <div className="font-bold text-stone-300 pb-2 border-b border-stone-800 flex justify-between">
-            <span>Resumen del Pedido</span>
-            <span className="font-mono text-amber-400">${currentOrder.total} $U</span>
+            <span>Detalle de tu Pedido ({currentOrder.paymentMethod})</span>
+            <span className="font-mono tabular-nums text-amber-400">${currentOrder.total} $U</span>
           </div>
-          <div className="space-y-1 text-stone-400">
+          <div className="space-y-1.5 text-stone-400">
             {currentOrder.items.map((it, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{it.quantity}x {it.name}</span>
-                <span className="font-mono text-stone-300">${it.price * it.quantity} $U</span>
+              <div key={i}>
+                <div className="flex justify-between">
+                  <span className="text-stone-200">{it.quantity}x {it.name}</span>
+                  <span className="font-mono tabular-nums text-stone-300">${it.price * it.quantity} $U</span>
+                </div>
+                {it.customNotes && (
+                  <div className="text-[10px] text-amber-400/90 pl-3">
+                    {it.customNotes}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Demo / Kitchen Simulation Action */}
-        <div className="pt-2 flex flex-col gap-2">
-          {activeIdx < steps.length - 1 && (
-            <button
-              onClick={handleAdvanceStatus}
-              disabled={isUpdating}
-              className="w-full py-2.5 px-4 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs border border-stone-700 flex items-center justify-center gap-2 transition-colors"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
-              <span>Simular Avance de Cocina (Etapa Siguiente)</span>
-            </button>
-          )}
-
+        {/* Direct WhatsApp Inquiry */}
+        <div className="pt-1">
           <a
             href={`https://wa.me/59899887766?text=Hola%20Brasa%20%26%20L%C3%BApulo!%20Quería%20consultar%20por%20mi%20pedido%20${currentOrder.orderNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-bold text-xs text-center transition-colors"
+            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-bold text-xs flex items-center justify-center transition-colors"
           >
-            Consultar por WhatsApp
+            Contactar al Local por WhatsApp
           </a>
         </div>
       </div>

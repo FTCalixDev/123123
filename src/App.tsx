@@ -59,7 +59,7 @@ function isStaffRoute(pathname: string, search: string): boolean {
 }
 
 export default function App() {
-  // Determine whether the browser is on the Independent Staff/Admin Web (/staff) or the Public Customer Web (/)
+  // Determine whether the browser is on the Staff/Admin Portal (/staff) or the Public Customer Web (/)
   const [isStaffWeb, setIsStaffWeb] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return isStaffRoute(window.location.pathname, window.location.search);
@@ -89,28 +89,6 @@ export default function App() {
     return () => window.removeEventListener('gmp-quota-exceeded', onQuotaExceeded);
   }, []);
 
-  // Secret keyboard sequence ("calixdev") so the owner can also jump to /staff inside an iframe without any visible button
-  useEffect(() => {
-    let buffer = '';
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.target instanceof HTMLSelectElement
-      ) {
-        return;
-      }
-      buffer = (buffer + e.key.toLowerCase()).slice(-8);
-      if (buffer === 'calixdev') {
-        buffer = '';
-        window.history.pushState({}, '', '/staff');
-        setIsStaffWeb(true);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
-
   // Application Data States
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [taps, setTaps] = useState<TapBeer[]>([]);
@@ -128,10 +106,11 @@ export default function App() {
     isOpen: true,
     minOrderAmount: 200,
     requirePhoneValidation: true,
-    maxFailedCodeAttempts: 5,
+    maxFailedCodeAttempts: 3,
+    featuredAnnouncement: '🔥 Happy Hour Artesanal de 19:30 a 21:30 hs — Pintas seleccionadas $150 $U',
   });
 
-  // Cart & Customer's Own Order (stored locally for this customer only)
+  // Cart & Customer's Own Order
   const [cart, setCart] = useState<CartItem[]>([]);
   const [currentTable, setCurrentTable] = useState<number | null>(null);
   const [activeTrackerOrder, setActiveTrackerOrder] = useState<Order | null>(null);
@@ -154,6 +133,25 @@ export default function App() {
     sound.playClick();
   };
 
+  // Open discrete Staff Portal login screen
+  const handleOpenStaffPortal = () => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/staff');
+    }
+    setIsStaffWeb(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    sound.playClick();
+  };
+
+  const handleBackToCustomerWeb = () => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+    }
+    setIsStaffWeb(false);
+    setCurrentPath('/');
+    fetchInitialData();
+  };
+
   useEffect(() => {
     const handlePopState = () => {
       const p = window.location.pathname || '/';
@@ -167,7 +165,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Update document title depending on which independent web is loaded
+  // Update document title depending on mode
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.title = isStaffWeb
@@ -267,6 +265,7 @@ export default function App() {
   };
 
   const handleAddToCart = (item: MenuItem, notes?: string) => {
+    if (item.available === false) return;
     const existingIdx = cart.findIndex(
       (i) => i.id === item.id && (!notes || i.customNotes === notes)
     );
@@ -374,14 +373,6 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  const handlePourTap = (tapId: string) => {
-    setTaps((prev) =>
-      prev.map((t) =>
-        t.id === tapId ? { ...t, kegPercentage: Math.max(0, t.kegPercentage - 2) } : t
-      )
-    );
-  };
-
   const handleAddReview = async (review: {
     name: string;
     rating: number;
@@ -423,7 +414,7 @@ export default function App() {
   const totalCartCount = cart.reduce((acc, it) => acc + it.quantity, 0);
 
   // ============================================================================
-  // WEB 2: APLICACIÓN INDEPENDIENTE DE EMPLEADOS Y ADMINISTRADORES (/staff)
+  // PORTAL INTERNO DE PERSONAL, REPARTIDORES, MOZOS Y ADMINISTRACIÓN (/staff)
   // ============================================================================
   if (isStaffWeb) {
     return (
@@ -449,13 +440,14 @@ export default function App() {
           onLoginSuccess={handleLoginSuccess}
           onLogout={handleLogout}
           onRefreshStoreData={fetchInitialData}
+          onBackToCustomerWeb={handleBackToCustomerWeb}
         />
       </div>
     );
   }
 
   // ============================================================================
-  // WEB 1: PÁGINA WEB PÚBLICA DE CLIENTES (100% PURA PARA COMENSALES)
+  // WEB PÚBLICA DE CLIENTES (CON ACCESO DISCRETO A PORTAL DE STAFF)
   // ============================================================================
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col font-sans selection:bg-orange-500/30 selection:text-white pb-16">
@@ -477,7 +469,14 @@ export default function App() {
         </div>
       )}
 
-      {/* Customer Restaurant Header (Zero Staff/Admin Buttons) */}
+      {/* Featured Announcement Bar (Configurable from Admin CMS) */}
+      {settings.featuredAnnouncement && (
+        <div className="bg-gradient-to-r from-orange-600/20 via-amber-500/20 to-orange-600/20 border-b border-orange-500/30 px-3 py-1.5 text-center text-[11px] sm:text-xs font-medium text-amber-200">
+          {settings.featuredAnnouncement}
+        </div>
+      )}
+
+      {/* Customer Restaurant Header */}
       <Header
         cartCount={totalCartCount}
         onOpenCart={() => setIsCartOpen(true)}
@@ -492,9 +491,10 @@ export default function App() {
             : null
         }
         onOpenOrderTracker={() => setActiveTrackerOrder(myCustomerOrder)}
+        onOpenStaffPortal={handleOpenStaffPortal}
       />
 
-      {/* Customer's Own Active Order Banner (Only shown if this customer placed an order) */}
+      {/* Customer's Own Active Order Banner */}
       {myCustomerOrder && myCustomerOrder.status !== 'delivered' && (
         <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -502,8 +502,8 @@ export default function App() {
               <KeyRound className="w-4 h-4 text-amber-400 shrink-0" />
               <span>
                 <strong>Tu pedido {myCustomerOrder.orderNumber} está en curso:</strong>{' '}
-                {myCustomerOrder.type === 'delivery'
-                  ? 'Entrégale este código de 4 dígitos al repartidor al recibir tu pedido:'
+                {myCustomerOrder.type === 'delivery' || myCustomerOrder.type === 'takeaway'
+                  ? 'Presenta este PIN de 4 dígitos al personal al recibir tu pedido:'
                   : `Preparando para Mesa #${myCustomerOrder.tableNumber || 1}`}
               </span>
             </div>
@@ -511,9 +511,9 @@ export default function App() {
               onClick={() => setActiveTrackerOrder(myCustomerOrder)}
               className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-800 border border-amber-500/40 text-white font-bold flex items-center gap-1.5 cursor-pointer"
             >
-              {myCustomerOrder.type === 'delivery' && (
+              {(myCustomerOrder.type === 'delivery' || myCustomerOrder.type === 'takeaway') && (
                 <span className="px-2 py-0.5 rounded bg-amber-500 text-stone-950 font-mono font-black">
-                  Código: {myCustomerOrder.verificationCode || '4921'}
+                  PIN: {myCustomerOrder.verificationCode}
                 </span>
               )}
               <span>Ver Seguimiento</span>
@@ -593,7 +593,7 @@ export default function App() {
                     className="py-3 px-6 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
                   >
                     <Beer className="w-4 h-4 text-amber-400" />
-                    <span>Pizarra Canillas (8)</span>
+                    <span>Pizarra Canillas ({taps.length})</span>
                   </button>
                 </div>
               </div>
@@ -654,7 +654,7 @@ export default function App() {
             </div>
 
             <ReviewsSection reviews={reviews} onAddReview={handleAddReview} />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
 
@@ -662,7 +662,7 @@ export default function App() {
         {currentPath === '/menu' && (
           <div className="space-y-8">
             <DigitalMenu items={menuItems} onAddToCart={handleAddToCart} />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
 
@@ -670,7 +670,7 @@ export default function App() {
         {currentPath === '/promos' && (
           <div className="space-y-8">
             <HeroPromos promos={promos} onOrderPromo={handleOrderPromo} />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
 
@@ -680,9 +680,8 @@ export default function App() {
             <TaproomVisualizer
               taps={taps}
               onOrderBeer={handleOrderBeer}
-              onPourTap={handlePourTap}
             />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
 
@@ -690,7 +689,7 @@ export default function App() {
         {currentPath === '/armar-burger' && (
           <div className="space-y-8">
             <BurgerBuilder onAddCustomBurger={handleAddCustomBurger} />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
 
@@ -698,7 +697,7 @@ export default function App() {
         {currentPath === '/reservas' && (
           <div className="space-y-8">
             <ReservationSection />
-            <LocationFooter />
+            <LocationFooter onOpenStaffPortal={handleOpenStaffPortal} />
           </div>
         )}
       </main>

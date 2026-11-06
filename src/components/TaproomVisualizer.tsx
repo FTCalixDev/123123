@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Beer, Droplets, Thermometer, Sparkles, Plus, ShoppingBag, Check } from 'lucide-react';
+import React from 'react';
+import { Beer, Plus, ShoppingBag, Thermometer } from 'lucide-react';
 import { TapBeer } from '../types/restaurant';
 import { sound } from '../utils/audio';
 
@@ -12,32 +12,12 @@ interface TaproomVisualizerProps {
     quantity: number;
     category: string;
   }) => void;
-  onPourTap?: (tapId: string) => void;
 }
 
 export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
   taps,
   onOrderBeer,
-  onPourTap,
 }) => {
-  const [pouringTapId, setPouringTapId] = useState<string | null>(null);
-
-  const handlePour = async (tap: TapBeer) => {
-    sound.playPour();
-    setPouringTapId(tap.id);
-
-    try {
-      await fetch(`/api/taps/${tap.id}/pour`, { method: 'POST' });
-      if (onPourTap) onPourTap(tap.id);
-    } catch (e) {
-      console.error(e);
-    }
-
-    setTimeout(() => {
-      setPouringTapId(null);
-    }, 1200);
-  };
-
   return (
     <section id="canillas" className="py-12 border-t border-stone-800">
       <div className="max-w-7xl mx-auto">
@@ -53,15 +33,15 @@ export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
             </h2>
           </div>
           <div className="text-xs sm:text-sm text-stone-400 max-w-md">
-            Barriles frescos pinchados y servidos a temperatura de cámara (-2.8°C). Podés pedir pintas para el salón o recargar tu botellón growler.
+            Nivel de barril conectado en tiempo real desde nuestra cámara de frío (-2.8°C). Pedí tu pinta tirada para la mesa o recargá tu botellón growler.
           </div>
         </div>
 
         {/* Taps Grid (8 taps) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {taps.map((tap) => {
-            const isPouring = pouringTapId === tap.id;
             const isLowKeg = tap.kegPercentage <= 30;
+            const isEmpty = tap.kegPercentage <= 0;
 
             return (
               <div
@@ -76,17 +56,21 @@ export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
                         #{tap.tapNumber}
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                        Canilla Rotativa
+                        Canilla #{tap.tapNumber}
                       </span>
                     </div>
 
-                    {isLowKeg ? (
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30 animate-pulse">
+                    {isEmpty ? (
+                      <span className="text-[11px] font-semibold text-stone-500">
+                        Cambiando Barril
+                      </span>
+                    ) : isLowKeg ? (
+                      <span className="text-[11px] font-semibold text-rose-400">
                         Últimas Pintas
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
-                        Barril Fresco
+                      <span className="text-[11px] font-semibold text-emerald-400">
+                        Barril Conectado
                       </span>
                     )}
                   </div>
@@ -96,14 +80,14 @@ export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
                     {tap.name}
                   </h3>
                   <p className="text-xs text-amber-500/90 font-semibold mb-3">
-                    {tap.style} • {tap.brewery}
+                    {tap.style} · {tap.brewery}
                   </p>
 
-                  {/* Visual Keg Level Fluid Gauge */}
+                  {/* Live Keg Level Fluid Gauge */}
                   <div className="space-y-1 mb-4">
                     <div className="flex justify-between text-[11px]">
-                      <span className="text-stone-400 font-medium">Nivel de Barril:</span>
-                      <span className={`font-mono font-bold ${isLowKeg ? 'text-rose-400' : 'text-amber-400'}`}>
+                      <span className="text-stone-400 font-medium">Nivel de Barril en Vivo:</span>
+                      <span className={`font-mono tabular-nums font-bold ${isLowKeg ? 'text-rose-400' : 'text-amber-400'}`}>
                         {tap.kegPercentage}%
                       </span>
                     </div>
@@ -123,28 +107,28 @@ export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
                   <div className="grid grid-cols-3 gap-1.5 py-2.5 px-3 rounded-xl bg-stone-950 border border-stone-800/80 text-center mb-4">
                     <div>
                       <div className="text-[10px] uppercase font-bold text-stone-500">Graduación</div>
-                      <div className="text-xs font-mono font-bold text-white">{tap.abv}% <span className="text-[10px] text-stone-400">ABV</span></div>
+                      <div className="text-xs font-mono tabular-nums font-bold text-white">
+                        {tap.abv}% <span className="text-[10px] text-stone-400">ABV</span>
+                      </div>
                     </div>
                     <div className="border-x border-stone-800/80">
                       <div className="text-[10px] uppercase font-bold text-stone-500">Amargor</div>
-                      <div className="text-xs font-mono font-bold text-amber-400">{tap.ibu} <span className="text-[10px] text-stone-400">IBU</span></div>
+                      <div className="text-xs font-mono tabular-nums font-bold text-amber-400">
+                        {tap.ibu} <span className="text-[10px] text-stone-400">IBU</span>
+                      </div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-stone-500">Servido</div>
-                      <div className="text-xs font-mono font-bold text-stone-300">{tap.temperature}</div>
+                      <div className="text-[10px] uppercase font-bold text-stone-500">Cámara</div>
+                      <div className="text-xs font-mono tabular-nums font-bold text-stone-300 flex items-center justify-center gap-0.5">
+                        <Thermometer className="w-3 h-3 text-sky-400" />
+                        <span>{tap.temperature}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Tasting Notes */}
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {tap.tastingNotes.map((note) => (
-                      <span
-                        key={note}
-                        className="text-[10px] px-2 py-0.5 rounded-md bg-stone-800/80 text-stone-300 border border-stone-700/60"
-                      >
-                        {note}
-                      </span>
-                    ))}
+                  {/* Tasting Notes (clean unboxed metadata with separators) */}
+                  <div className="text-[11px] text-stone-400 mb-3">
+                    {tap.tastingNotes.join(' · ')}
                   </div>
 
                   {/* Food Pairing note */}
@@ -154,57 +138,44 @@ export const TaproomVisualizer: React.FC<TaproomVisualizerProps> = ({
                   </div>
                 </div>
 
-                {/* Interactive Pour & Order Buttons */}
+                {/* Real Customer Order Buttons (No Simulation Button) */}
                 <div className="space-y-2 pt-3 border-t border-stone-800">
-                  {/* Interactive Pour Simulator */}
                   <button
-                    onClick={() => handlePour(tap)}
-                    disabled={isPouring}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
-                      isPouring
-                        ? 'bg-amber-500 text-stone-950 border-amber-400 scale-95'
-                        : 'bg-stone-950 text-amber-400 hover:bg-stone-800 border-amber-500/30'
-                    }`}
+                    disabled={isEmpty}
+                    onClick={() => {
+                      sound.playChime();
+                      onOrderBeer({
+                        id: `${tap.id}-pinta`,
+                        name: `Pinta ${tap.name}`,
+                        price: tap.pricePinta,
+                        quantity: 1,
+                        category: 'bebidas',
+                      });
+                    }}
+                    className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-40 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 cursor-pointer"
                   >
-                    <Droplets className={`w-3.5 h-3.5 ${isPouring ? 'animate-bounce' : ''}`} />
-                    <span>{isPouring ? '¡Tirando pinta helada...!' : 'Simular Tirada de Grifo 🍺'}</span>
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>Pedir Pinta (${tap.pricePinta} $U)</span>
                   </button>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => {
-                        sound.playChime();
-                        onOrderBeer({
-                          id: `${tap.id}-pinta`,
-                          name: `Pinta ${tap.name}`,
-                          price: tap.pricePinta,
-                          quantity: 1,
-                          category: 'bebidas',
-                        });
-                      }}
-                      className="py-2.5 px-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Pinta ${tap.pricePinta}</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        sound.playChime();
-                        onOrderBeer({
-                          id: `${tap.id}-growler`,
-                          name: `Growler (1.9L) ${tap.name}`,
-                          price: tap.priceGrowler,
-                          quantity: 1,
-                          category: 'bebidas',
-                        });
-                      }}
-                      className="py-2.5 px-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs border border-stone-700 transition-colors flex items-center justify-center gap-1"
-                      title="Botellón recargable de 1.9 litros para llevar a casa"
-                    >
-                      <span>Growler ${tap.priceGrowler}</span>
-                    </button>
-                  </div>
+                  <button
+                    disabled={isEmpty}
+                    onClick={() => {
+                      sound.playChime();
+                      onOrderBeer({
+                        id: `${tap.id}-growler`,
+                        name: `Growler (1.9L) ${tap.name}`,
+                        price: tap.priceGrowler,
+                        quantity: 1,
+                        category: 'bebidas',
+                      });
+                    }}
+                    className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 disabled:opacity-40 text-stone-200 font-semibold text-xs border border-stone-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    title="Botellón recargable de 1.9 litros para llevar"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Recargar Growler 1.9L (${tap.priceGrowler} $U)</span>
+                  </button>
                 </div>
               </div>
             );

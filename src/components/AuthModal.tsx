@@ -18,8 +18,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onLoginSuccess,
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [username, setUsername] = useState('Calix');
-  const [password, setPassword] = useState('calixdev');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -115,23 +115,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </p>
         </div>
 
-        {/* Quick Admin Tip Pill */}
-        <div
-          onClick={() => {
-            setUsername('Calix');
-            setPassword('calixdev');
-            setMode('login');
-          }}
-          className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between cursor-pointer hover:bg-amber-500/20 transition-colors"
-          title="Haz clic para autocompletar credenciales maestras"
-        >
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>Admin preconfigurado: <strong>Calix</strong> / clave <strong>calixdev</strong></span>
-          </div>
-          <span className="text-[10px] font-bold text-amber-400 uppercase">Cargar</span>
-        </div>
-
         {/* Mode Tabs */}
         <div className="grid grid-cols-2 gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800 text-xs font-bold">
           <button
@@ -193,7 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Ej. Calix o tu usuario"
+                  placeholder="Ingresa tu usuario"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-white placeholder-stone-500 focus:border-orange-500 focus:outline-none"
                 />
               </div>
@@ -283,7 +266,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <p className="text-[11px] text-stone-500 leading-tight">
-              Al registrarte, tu cuenta quedará en espera hasta que el Administrador (Calix) la active desde el panel de control.
+              Al registrarte, tu cuenta quedará en espera hasta que la Administración del local la autorice.
             </p>
 
             <button
