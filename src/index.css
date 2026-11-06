@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Oswald', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #0c0a09;
+    color: #fafaf9;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+}
+
+/* Custom ember & fire ambient glow */
+.ember-glow {
+  text-shadow: 0 0 20px rgba(255, 85, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.3);
+}
+
+.fire-border {
+  border-color: rgba(255, 85, 0, 0.3);
+  box-shadow: 0 0 15px rgba(255, 85, 0, 0.15);
+}
+
+.beer-amber-glow {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+}
+
+/* Animation keyframes */
+@keyframes flame-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-5px) scale(1.02); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@keyframes beer-bubble {
+  0% { transform: translateY(10px); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+
+.animate-flame {
+  animation: flame-float 3.5s ease-in-out infinite;
+}
+
+.animate-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #141210;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e2925;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}

@@ -1,0 +1,836 @@
+{
+  "taps": [
+    {
+      "id": "tap-1",
+      "tapNumber": 1,
+      "name": "Furia Citra IPA",
+      "brewery": "Brasa & Lúpulo Brewing Co.",
+      "style": "American West Coast IPA",
+      "abv": 6.4,
+      "ibu": 54,
+      "temperature": "2.8°C",
+      "kegPercentage": 74,
+      "pricePinta": 220,
+      "priceGrowler": 590,
+      "status": "activa",
+      "color": "dorado-ambar",
+      "tastingNotes": [
+        "Pomelo rosado",
+        "Maracuyá",
+        "Pino fresco",
+        "Final seco y amargo"
+      ],
+      "foodPairing": "Smash Brasa Doble Cheddar y papas con panceta"
+    },
+    {
+      "id": "tap-2",
+      "tapNumber": 2,
+      "name": "Honey Dorada del Norte",
+      "brewery": "Colmena del Valle",
+      "style": "Honey Blonde Ale",
+      "abv": 5.2,
+      "ibu": 18,
+      "temperature": "3.0°C",
+      "kegPercentage": 42,
+      "pricePinta": 210,
+      "priceGrowler": 560,
+      "status": "activa",
+      "color": "dorado-brillante",
+      "tastingNotes": [
+        "Miel orgánica pura",
+        "Flor de azahar",
+        "Malta biscuit",
+        "Cuerpo sedoso"
+      ],
+      "foodPairing": "Pizza Margherita al Barro y bastones de muzzarella"
+    },
+    {
+      "id": "tap-3",
+      "tapNumber": 3,
+      "name": "Roble & Malta Scottish",
+      "brewery": "Brasa & Lúpulo Brewing Co.",
+      "style": "Scottish Heavy 70/-",
+      "abv": 5.8,
+      "ibu": 22,
+      "temperature": "3.5°C",
+      "kegPercentage": 88,
+      "pricePinta": 210,
+      "priceGrowler": 560,
+      "status": "activa",
+      "color": "rojo-rubi",
+      "tastingNotes": [
+        "Caramelo toffee",
+        "Frutos secos",
+        "Toque ahumado de leña",
+        "Final dulce"
+      ],
+      "foodPairing": "Oklahoma Onion Smash y Tabla de quesos asados"
+    },
+    {
+      "id": "tap-4",
+      "tapNumber": 4,
+      "name": "Noche Cerrada Oatmeal Stout",
+      "brewery": "Tacuarembó Dark Crafters",
+      "style": "Oatmeal Milk Stout",
+      "abv": 6.8,
+      "ibu": 35,
+      "temperature": "4.2°C",
+      "kegPercentage": 61,
+      "pricePinta": 230,
+      "priceGrowler": 620,
+      "status": "activa",
+      "color": "negro-ebano",
+      "tastingNotes": [
+        "Café expreso",
+        "Cacao amargo 70%",
+        "Avena cremosa",
+        "Espuma densa marrón"
+      ],
+      "foodPairing": "Trufa & Hongos Burger y Volcán de chocolate al horno de leña"
+    },
+    {
+      "id": "tap-5",
+      "tapNumber": 5,
+      "name": "Hazy Neipa Bruma Tropical",
+      "brewery": "Brasa & Lúpulo Brewing Co.",
+      "style": "New England Hazy IPA",
+      "abv": 6.5,
+      "ibu": 38,
+      "temperature": "3.0°C",
+      "kegPercentage": 29,
+      "pricePinta": 240,
+      "priceGrowler": 640,
+      "status": "ultimas_pintas",
+      "color": "amarillo-turbio",
+      "tastingNotes": [
+        "Mango maduro",
+        "Piña asada",
+        "Cero amargor astringente",
+        "Sedosidad total"
+      ],
+      "foodPairing": "Triple Fuego & Jalapeño (contrasta el picor)"
+    },
+    {
+      "id": "tap-6",
+      "tapNumber": 6,
+      "name": "Golden Ale del Horno",
+      "brewery": "Brasa & Lúpulo Brewing Co.",
+      "style": "Easy Drinking Summer Blonde",
+      "abv": 4.5,
+      "ibu": 16,
+      "temperature": "2.5°C",
+      "kegPercentage": 95,
+      "pricePinta": 190,
+      "priceGrowler": 510,
+      "status": "activa",
+      "color": "oro-cristalino",
+      "tastingNotes": [
+        "Cereales frescos",
+        "Toque sutil de cáscara de naranja",
+        "Extremadamente refrescante"
+      ],
+      "foodPairing": "Pizza Cuatro Quesos Ahumada o Papas Rústicas con Alioli"
+    },
+    {
+      "id": "tap-7",
+      "tapNumber": 7,
+      "name": "Red IPA Fuego Criollo",
+      "brewery": "Cervecería de la Tierra",
+      "style": "Red India Pale Ale",
+      "abv": 6.7,
+      "ibu": 58,
+      "temperature": "3.2°C",
+      "kegPercentage": 52,
+      "pricePinta": 230,
+      "priceGrowler": 620,
+      "status": "activa",
+      "color": "cobre-intenso",
+      "tastingNotes": [
+        "Lúpulos resinosos",
+        "Caramelo oscuro",
+        "Corteza de pan tostado",
+        "Amargor persistente"
+      ],
+      "foodPairing": "Pizza Pepperoni & Miel Picante"
+    },
+    {
+      "id": "tap-8",
+      "tapNumber": 8,
+      "name": "Sidra Artesanal Patagónica",
+      "brewery": "Valle Verde",
+      "style": "Sidra Tirada Extra Brut",
+      "abv": 5,
+      "ibu": 0,
+      "temperature": "2.0°C",
+      "kegPercentage": 80,
+      "pricePinta": 180,
+      "priceGrowler": 490,
+      "status": "activa",
+      "color": "amarillo-paja",
+      "tastingNotes": [
+        "Manzana verde crujiente",
+        "Burbuja fina natural",
+        "Sin azúcar agregada",
+        "Apto celíacos"
+      ],
+      "foodPairing": "Tabla Cervecera Caliente"
+    }
+  ],
+  "menu": [
+    {
+      "id": "smash-brasa-doble",
+      "name": "Smash Brasa Doble",
+      "category": "burgers",
+      "price": 390,
+      "description": "Doble medallón smash 110g a la plancha de hierro fundido con costra crocante caramelizada, cuádruple cheddar americano fundido, panceta ahumada a la leña y salsa especial Brasa en pan de papa artesanal tostado con manteca.",
+      "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+      "badge": "Más Vendida",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "10-12 min",
+      "ingredients": [
+        "Doble carne Angus smash (220g)",
+        "Cuádruple cheddar americano",
+        "Panceta ahumada crocante",
+        "Salsa secreta Brasa",
+        "Pan de papa tostado con manteca",
+        "Papas rústicas incluidas"
+      ],
+      "pairingSuggestion": "Tap 1: Furia Citra IPA"
+    },
+    {
+      "id": "oklahoma-onion-smash",
+      "name": "Oklahoma Onion Smash",
+      "category": "burgers",
+      "price": 370,
+      "description": "El clásico histórico de Oklahoma: doble carne smash aplastada directamente sobre una abundante cama de cebolla ultrafina en la plancha de hierro, doble cheddar fundido, pepinillos encurtidos y mostaza dulce en pan de papa.",
+      "image": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80",
+      "badge": "Clásico Artesanal",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "10 min",
+      "ingredients": [
+        "Doble medallón smash",
+        "Cebolla incrustada en plancha",
+        "Doble cheddar",
+        "Pepinillos agridulces caseros",
+        "Pan de papa artesanal",
+        "Papas rústicas incluidas"
+      ],
+      "pairingSuggestion": "Tap 3: Roble & Malta Scottish"
+    },
+    {
+      "id": "triple-fuego-jalapeno",
+      "name": "Triple Fuego & Jalapeño",
+      "category": "burgers",
+      "price": 460,
+      "description": "Para los amantes del sabor intenso: triple medallón smash de 100g, mix de cheddar y provolone fundido con soplete, panceta ahumada, rodajas de jalapeños encurtidos y alioli de morrones asados al fuego en pan brioche.",
+      "image": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80",
+      "badge": "Picante Suave / Insignia",
+      "isPopular": true,
+      "isSpicy": true,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "12-14 min",
+      "ingredients": [
+        "Triple medallón smash (300g)",
+        "Queso cheddar y provolone",
+        "Panceta ahumada",
+        "Jalapeños encurtidos",
+        "Alioli de morrones asados",
+        "Pan brioche",
+        "Papas rústicas"
+      ],
+      "pairingSuggestion": "Tap 5: Hazy Neipa Bruma Tropical"
+    },
+    {
+      "id": "trufa-hongos-burger",
+      "name": "Trufa & Hongos Silvestres",
+      "category": "burgers",
+      "price": 420,
+      "description": "Doble carne smash, queso suizo emmental fundido, salteado de champiñones frescos y portobellos a la manteca negra con tomillo, y mayonesa emulsionada con aceite de trufa blanca en pan brioche dorado.",
+      "image": "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=800&q=80",
+      "badge": "Gourmet de la Casa",
+      "isPopular": false,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "12 min",
+      "ingredients": [
+        "Doble carne Angus smash",
+        "Queso suizo emmental",
+        "Champiñones & Portobellos a la manteca",
+        "Mayonesa trufada",
+        "Pan brioche",
+        "Papas rústicas"
+      ],
+      "pairingSuggestion": "Tap 4: Noche Cerrada Oatmeal Stout"
+    },
+    {
+      "id": "veggie-provo-smash",
+      "name": "Veggie Provoleta & Palta",
+      "category": "burgers",
+      "price": 380,
+      "description": "Medallón casero crocante de gírgolas y garbanzos asados, provoleta fundida a la chapa, palta fresca en láminas, rúcula salvaje y mayonesa de ajo negro en pan de papa.",
+      "image": "https://images.unsplash.com/photo-1525059696034-4967a8e1dca2?auto=format&fit=crop&w=800&q=80",
+      "badge": "100% Vegetariana",
+      "isPopular": false,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": false,
+      "cookingTime": "10 min",
+      "ingredients": [
+        "Medallón de hongos y legumbres",
+        "Provoleta a la chapa",
+        "Palta fresca",
+        "Rúcula",
+        "Mayo de ajo negro",
+        "Papas rústicas"
+      ],
+      "pairingSuggestion": "Tap 6: Golden Ale del Horno"
+    },
+    {
+      "id": "pizza-margherita-barro",
+      "name": "Pizza Margherita al Barro",
+      "category": "pizzas",
+      "price": 480,
+      "description": "Masa madre de 48 horas de fermentación lenta, horneada a 420°C a la leña de espinillo. Salsa pomodoro de tomates perita seleccionados, muzzarella fior di latte fundente, albahaca fresca del huerto y oliva virgen extra.",
+      "image": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=800&q=80",
+      "badge": "Masa Madre 48hs",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": false,
+      "cookingTime": "8 min",
+      "ingredients": [
+        "Masa madre de 48hs",
+        "Salsa pomodoro casera",
+        "Muzzarella fior di latte",
+        "Hojas de albahaca fresca",
+        "Aceite de oliva virgen extra",
+        "Piso de piedra refractaria (8 porciones)"
+      ],
+      "pairingSuggestion": "Tap 2: Honey Dorada del Norte"
+    },
+    {
+      "id": "pizza-pepperoni-miel-picante",
+      "name": "Pepperoni & Miel Picante",
+      "category": "pizzas",
+      "price": 550,
+      "description": "Nuestra creación más aclamada al horno de leña: abundante muzzarella gratinada, láminas crocantes de pepperoni curado ahumado y un hilado final de miel orgánica tibia infusionada con ajíes secos.",
+      "image": "https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80",
+      "badge": "Plato Estrella",
+      "isPopular": true,
+      "isSpicy": true,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "8 min",
+      "ingredients": [
+        "Masa madre",
+        "Salsa pomodoro",
+        "Muzzarella abundante",
+        "Pepperoni curado crocante",
+        "Miel tibia infusionada con ají picante (8 porciones)"
+      ],
+      "pairingSuggestion": "Tap 7: Red IPA Fuego Criollo"
+    },
+    {
+      "id": "pizza-cuatro-quesos-ahumada",
+      "name": "Cuatro Quesos Ahumada a la Leña",
+      "category": "pizzas",
+      "price": 540,
+      "description": "Base blanca sin tomate con muzzarella de tambo, queso azul artesanal desgranado, provoleta madurada rallada y escamas de parmesano gratinadas al horno de barro con nueces tostadas y romero.",
+      "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+      "badge": "Horno de Barro",
+      "isPopular": false,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": false,
+      "cookingTime": "9 min",
+      "ingredients": [
+        "Muzzarella de tambo",
+        "Queso azul",
+        "Provoleta estacionada",
+        "Parmesano gratinado",
+        "Nueces tostadas",
+        "Romero fresco"
+      ],
+      "pairingSuggestion": "Tap 3: Roble & Malta Scottish"
+    },
+    {
+      "id": "pizza-fugazzeta-rellena",
+      "name": "Fugazzeta Rellena Brasa",
+      "category": "pizzas",
+      "price": 590,
+      "description": "Doble capa de masa madre rellena con medio kilo de muzzarella y jamón natural, cubierta con abundante cebolla blanca en juliana caramelizada en horno de leña, orégano del campo y oliva.",
+      "image": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80",
+      "badge": "Extrema (Super Queso)",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "15 min",
+      "ingredients": [
+        "Masa madre doble",
+        "500g muzzarella fundente",
+        "Jamón natural cocido",
+        "Cebolla caramelizada al horno",
+        "Orégano silvestre"
+      ],
+      "pairingSuggestion": "Tap 1: Furia Citra IPA"
+    },
+    {
+      "id": "papas-brasa-cheddar-panceta",
+      "name": "Papas Brasa con Cheddar & Panceta",
+      "category": "picadas",
+      "price": 320,
+      "description": "Bandeja generosa de 600 gramos de papas rústicas de triple cocción: crujientes por fuera y suaves por dentro, bañadas en salsa cheddar caliente artesanal, trozos de panceta ahumada crujiente y ciboulette fresco picado.",
+      "image": "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80",
+      "badge": "Ideal para 2-3",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": true,
+      "cookingTime": "8 min",
+      "ingredients": [
+        "600g papas rústicas triple cocción",
+        "Salsa cheddar casera con cerveza rubia",
+        "Panceta crocante ahumada",
+        "Ciboulette fresco"
+      ],
+      "pairingSuggestion": "Tap 6: Golden Ale del Horno"
+    },
+    {
+      "id": "tabla-cervecera-caliente",
+      "name": "Gran Tabla Cervecera Caliente",
+      "category": "picadas",
+      "price": 770,
+      "description": "La reina del picoteo entre amigos: bastones crocantes de muzzarella apanada, aros de cebolla rebozados en masa de cerveza, dados de pollo crispy con panko, salchichas ahumadas salteadas, papas rústicas y trío de salsas caseras.",
+      "image": "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=800&q=80",
+      "badge": "Para Compartir (3-4 pers)",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "14 min",
+      "ingredients": [
+        "Bastones de muzzarella",
+        "Pollo crispy panko",
+        "Aros de cebolla a la cerveza",
+        "Salchicha alemana dorada",
+        "Papas rústicas",
+        "Dip barbacoa al bourbon",
+        "Dip alioli de ajo asado",
+        "Dip cheddar caliente"
+      ],
+      "pairingSuggestion": "Tap 1: Furia Citra IPA o Tap 8: Sidra"
+    },
+    {
+      "id": "empanadas-horno-leña",
+      "name": "Trío de Empanadas al Horno de Leña",
+      "category": "picadas",
+      "price": 280,
+      "description": "Tres empanadas de masa casera al horno de barro con piso de leña: una de carne cortada a cuchillo con huevo y verdeo, una de provolone y cebolla caramelizada, y una de pollo desmechado con hongos.",
+      "image": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=800&q=80",
+      "badge": "Masa Casera",
+      "isPopular": false,
+      "isSpicy": false,
+      "isVeggie": false,
+      "isGlutenFree": false,
+      "cookingTime": "10 min",
+      "ingredients": [
+        "1 Carne a cuchillo",
+        "1 Provolone & Cebolla",
+        "1 Pollo & Hongos",
+        "Masa hojaldrada a la grasa al horno de leña"
+      ],
+      "pairingSuggestion": "Tap 3: Roble & Malta Scottish"
+    },
+    {
+      "id": "trago-gin-tonic-brasa",
+      "name": "Gin Tonic Ahumado con Romero",
+      "category": "bebidas",
+      "price": 260,
+      "description": "Gin artesanal destilado en alambique de cobre, agua tónica premium, rodaja de pomelo rosado deshidratado y rama de romero fresco flameada al soplete antes de servir.",
+      "image": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80",
+      "badge": "Coctelería de Autor",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": true,
+      "cookingTime": "3 min",
+      "ingredients": [
+        "Gin artesanal 60ml",
+        "Tónica premium",
+        "Pomelo rosado",
+        "Romero flameado",
+        "Hielo cristal macizo"
+      ],
+      "pairingSuggestion": "Pizza Margherita al Barro"
+    },
+    {
+      "id": "limonada-menta-jengibre",
+      "name": "Limonada Natural Menta & Jengibre",
+      "category": "bebidas",
+      "price": 170,
+      "description": "Vaso de 500ml de jugo puro de limones exprimidos en el momento, almíbar artesanal de azúcar de caña rubia, hojas de menta maceradas y ralladura de jengibre fresco con hielo picado.",
+      "image": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80",
+      "badge": "Sin Alcohol",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": true,
+      "cookingTime": "3 min",
+      "ingredients": [
+        "Limones frescos exprimidos",
+        "Menta del huerto",
+        "Jengibre fresco",
+        "Almíbar de caña rubia"
+      ],
+      "pairingSuggestion": "Smash Brasa Doble"
+    },
+    {
+      "id": "volcan-chocolate-leña",
+      "name": "Volcán de Chocolate al Horno de Leña",
+      "category": "postres",
+      "price": 270,
+      "description": "Bizcocho tibio de chocolate amargo belga horneado a las brasas con corazón líquido fundente, acompañado de bocha de helado artesanal de crema americana y garrapiñada de nueces.",
+      "image": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
+      "badge": "Horneado al Momento",
+      "isPopular": true,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": false,
+      "cookingTime": "12 min",
+      "ingredients": [
+        "Chocolate belga 70%",
+        "Corazón volcánico fundente",
+        "Helado de crema americana",
+        "Garrapiñada de nueces al fuego"
+      ],
+      "pairingSuggestion": "Tap 4: Noche Cerrada Oatmeal Stout"
+    },
+    {
+      "id": "panqueque-dulce-leche-brasa",
+      "name": "Panqueque Caramelizado al Disco",
+      "category": "postres",
+      "price": 240,
+      "description": "Panqueque finito enrollado con abundante dulce de leche de campo repostero uruguayo, espolvoreado con azúcar y quemado con hierro al rojo vivo para lograr una capa de caramelo crujiente.",
+      "image": "https://images.unsplash.com/photo-1528736235302-52922df5c122?auto=format&fit=crop&w=800&q=80",
+      "badge": "Clásico Uruguayo",
+      "isPopular": false,
+      "isSpicy": false,
+      "isVeggie": true,
+      "isGlutenFree": false,
+      "cookingTime": "8 min",
+      "ingredients": [
+        "Panqueque artesanal",
+        "Dulce de leche uruguayo conaprole",
+        "Costra de azúcar quemada a la pala de hierro",
+        "Canela"
+      ],
+      "pairingSuggestion": "Tap 3: Roble & Malta Scottish"
+    }
+  ],
+  "promos": [
+    {
+      "id": "promo-2x1-smash",
+      "title": "Jueves de Fuego: 2x1 Smash Doble",
+      "subtitle": "2 Smash Doble Cheddar + Papas Rústicas",
+      "description": "Dos smash burgers completas con doble medallón cada una, cuádruple cheddar, panceta ahumada y salsa Brasa con papas para los dos.",
+      "priceNow": 520,
+      "priceOld": 1040,
+      "discount": "50% OFF",
+      "pill": "Promoción Especial",
+      "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80",
+      "badge": "Jueves & Domingos"
+    },
+    {
+      "id": "promo-pizza-pintas",
+      "title": "Combo Horno al Barro + 2 Pintas Tiradas",
+      "subtitle": "Pizza Grande (8 porc) + 2 Pintas Artesanales a elección",
+      "description": "Elegí entre Margherita, Pepperoni con Miel o Cuatro Quesos, acompañada de 2 pintas artesanales heladas de cualquiera de nuestras 8 canillas.",
+      "priceNow": 890,
+      "priceOld": 1120,
+      "discount": "20% OFF",
+      "pill": "Combo Compartir",
+      "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1200&q=80",
+      "badge": "Todos los Días"
+    },
+    {
+      "id": "promo-happy-hour",
+      "title": "Happy Hour Cervecero 19:30 a 21:30 hs",
+      "subtitle": "Todas las Pintas Artesanales a solo $150 $U",
+      "description": "8 canillas rotativas tiradas al instante. Vení con tu grupo al patio cervecero o recargá tu botellón growler con descuento especial.",
+      "priceNow": 150,
+      "priceOld": 240,
+      "discount": "37% OFF",
+      "pill": "Happy Hour Diario",
+      "image": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=1200&q=80",
+      "badge": "Martes a Domingo"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-1",
+      "name": "Matías Silva",
+      "rating": 5,
+      "date": "Hace 2 días",
+      "dish": "Smash Brasa Doble + Citra IPA",
+      "comment": "La mejor smash burger de Tacuarembó por lejos. La costra que le sacan a la carne y el pan de papa es de otro nivel. Y la IPA tirada fría estaba impecable. El pedido por la web llegó en 25 minutos.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"
+    },
+    {
+      "id": "rev-2",
+      "name": "Camila Rodríguez",
+      "rating": 5,
+      "date": "Hace 4 días",
+      "dish": "Pizza Pepperoni & Miel Picante",
+      "comment": "Increíble la masa de fermentación lenta, se nota el horno a leña real. La combinación con la miel tibia picante es adictiva. Reservamos mesa para 6 en el patio y la atención fue un 10.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
+    },
+    {
+      "id": "rev-3",
+      "name": "Gonzalo Méndez",
+      "rating": 5,
+      "date": "Hace 1 semana",
+      "dish": "Oklahoma Onion Smash & Tabla Caliente",
+      "comment": "La fugazzeta rellena y la tabla cervecera con los aros de cebolla son gigantes. Fuimos con amigos a ver el partido y probamos las 8 canillas. Muy buena música y ambientación.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80"
+    },
+    {
+      "id": "rev-4",
+      "name": "Florencia techera",
+      "rating": 5,
+      "date": "Hace 1 semana",
+      "dish": "Volcán de Chocolate al Horno",
+      "comment": "El volcán de chocolate recién salido de las brasas con helado americano es el cierre perfecto. Además nos encantó poder escanear el QR en la mesa y pedir todo sin esperar.",
+      "verified": true,
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-7897",
+      "orderNumber": "#7897",
+      "type": "delivery",
+      "verificationCode": "1868",
+      "assignedTo": "emp-gonzalo",
+      "assignedToName": "Gonzalo",
+      "claimedAt": "2026-11-06T17:06:57.356Z",
+      "deliveredAt": null,
+      "deliveryCommission": 65,
+      "failedCodeAttempts": 0,
+      "isFraudBlocked": false,
+      "fraudReason": "",
+      "customer": {
+        "name": "Cliente Real",
+        "phone": "099123456",
+        "address": "18 de Julio 500",
+        "notes": ""
+      },
+      "items": [
+        {
+          "id": "1",
+          "name": "Smash",
+          "price": 380,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 380,
+      "deliveryFee": 60,
+      "total": 440,
+      "status": "in_transit",
+      "paymentMethod": "Efectivo",
+      "notes": "",
+      "createdAt": "2026-11-06T17:06:54.450Z",
+      "estimatedMinutes": 30,
+      "clientIp": "127.0.0.1"
+    },
+    {
+      "id": "ORD-8130",
+      "orderNumber": "#8130",
+      "type": "table",
+      "tableNumber": 4,
+      "customer": {
+        "name": "Test User",
+        "phone": "+59899111222"
+      },
+      "items": [
+        {
+          "id": "smash-brasa-doble",
+          "name": "Smash Brasa Doble",
+          "price": 390,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 390,
+      "deliveryFee": 0,
+      "total": 390,
+      "status": "received",
+      "paymentMethod": "Efectivo",
+      "notes": "",
+      "createdAt": "2026-11-06T03:20:38.213Z",
+      "estimatedMinutes": 15
+    },
+    {
+      "id": "ORD-7821",
+      "orderNumber": "#7821",
+      "type": "delivery",
+      "verificationCode": "4921",
+      "assignedTo": null,
+      "assignedToName": null,
+      "failedCodeAttempts": 0,
+      "isFraudBlocked": false,
+      "fraudReason": "",
+      "customer": {
+        "name": "Lucas Pereira",
+        "phone": "+598 98 123 456",
+        "address": "Catalina 482, Tacuarembó",
+        "notes": "Tocar timbre blanco, no anda el portero"
+      },
+      "items": [
+        {
+          "id": "smash-brasa-doble",
+          "name": "Smash Brasa Doble",
+          "price": 390,
+          "quantity": 2,
+          "customNotes": "Punto bien crocante"
+        },
+        {
+          "id": "papas-brasa-cheddar-panceta",
+          "name": "Papas Brasa Cheddar & Panceta",
+          "price": 320,
+          "quantity": 1
+        }
+      ],
+      "subtotal": 1100,
+      "deliveryFee": 60,
+      "total": 1160,
+      "status": "kitchen",
+      "paymentMethod": "Efectivo",
+      "createdAt": "2026-11-05T19:05:00.000Z",
+      "estimatedMinutes": 25
+    },
+    {
+      "id": "ORD-7822",
+      "orderNumber": "#7822",
+      "type": "table",
+      "tableNumber": 4,
+      "customer": {
+        "name": "Mesa 4 (Salón)",
+        "phone": "+598 99 555 444",
+        "notes": "Cliente en salón"
+      },
+      "items": [
+        {
+          "id": "pizza-pepperoni-miel-picante",
+          "name": "Pizza Pepperoni & Miel Picante",
+          "price": 550,
+          "quantity": 1
+        },
+        {
+          "id": "tap-1",
+          "name": "Pinta Furia Citra IPA",
+          "price": 220,
+          "quantity": 2
+        }
+      ],
+      "subtotal": 990,
+      "deliveryFee": 0,
+      "total": 990,
+      "status": "oven",
+      "paymentMethod": "Tarjeta en Mesa",
+      "createdAt": "2026-11-05T19:08:00.000Z",
+      "estimatedMinutes": 12
+    }
+  ],
+  "reservations": [
+    {
+      "id": "RES-104",
+      "resNumber": "#RES-104",
+      "name": "Sebastián Alvez",
+      "phone": "+598 99 777 888",
+      "email": "seba.alvez@gmail.com",
+      "date": "2026-11-06",
+      "time": "21:00",
+      "guests": 4,
+      "zone": "Patio Cervecero",
+      "occasion": "Cumpleaños",
+      "status": "confirmed",
+      "notes": "Preferimos cerca de las luces colgantes.",
+      "createdAt": "2026-11-05T18:30:00.000Z"
+    },
+    {
+      "id": "RES-105",
+      "resNumber": "#RES-105",
+      "name": "Lucía Fontana",
+      "phone": "+598 91 223 344",
+      "email": "lucia.fontana@outlook.com",
+      "date": "2026-11-07",
+      "time": "20:30",
+      "guests": 2,
+      "zone": "Cerca del Horno de Barro",
+      "occasion": "Cena Romántica / Pareja",
+      "status": "confirmed",
+      "notes": "Mesa tranquila si es posible",
+      "createdAt": "2026-11-05T18:45:00.000Z"
+    }
+  ],
+  "employees": [
+    {
+      "id": "emp-calix",
+      "name": "Calix (Administrador General)",
+      "username": "Calix",
+      "password": "calixdev",
+      "role": "admin",
+      "status": "approved",
+      "commissionPerDelivery": 60,
+      "phone": "+598 99 887 766",
+      "createdAt": "2026-11-01T00:00:00.000Z"
+    },
+    {
+      "id": "emp-gonzalo",
+      "name": "Gonzalo Méndez",
+      "username": "gonzalo",
+      "password": "123",
+      "role": "delivery",
+      "status": "approved",
+      "commissionPerDelivery": 70,
+      "phone": "+598 98 444 333",
+      "createdAt": "2026-11-02T12:00:00.000Z"
+    },
+    {
+      "id": "emp-rodrigo",
+      "name": "Rodrigo Silva",
+      "username": "rodrigo",
+      "password": "123",
+      "role": "delivery",
+      "status": "approved",
+      "commissionPerDelivery": 60,
+      "phone": "+598 99 222 111",
+      "createdAt": "2026-11-05T16:00:00.000Z"
+    }
+  ],
+  "settings": {
+    "restaurantName": "Brasa & Lúpulo",
+    "tagline": "Smash Burgers • Horno de Barro • Birra Artesanal",
+    "address": "18 de Julio 245 esq. 25 de Mayo, Tacuarembó, Uruguay",
+    "phone": "+598 99 887 766",
+    "whatsapp": "59899887766",
+    "openingHours": "Miércoles a Domingos 19:30 a 01:30 hs",
+    "happyHour": "19:30 a 21:30 hs ($150 la pinta)",
+    "deliveryFee": 60,
+    "isOpen": true,
+    "minOrderAmount": 200,
+    "requirePhoneValidation": true,
+    "maxFailedCodeAttempts": 3
+  }
+}

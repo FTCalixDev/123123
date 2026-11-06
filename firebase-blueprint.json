@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "OrderRecord": {
+      "title": "OrderRecord",
+      "description": "Cloud-synced restaurant order record for Brasa & Lupulo.",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "description": "Display order number e.g. #7821",
+          "minLength": 2,
+          "maxLength": 20,
+          "pattern": "^#[0-9]{3,10}$"
+        },
+        "orderType": {
+          "type": "string",
+          "description": "Order fulfillment channel",
+          "enum": ["delivery", "table", "takeaway"],
+          "minLength": 5,
+          "maxLength": 15
+        },
+        "status": {
+          "type": "string",
+          "description": "Current order lifecycle state",
+          "enum": ["received", "kitchen", "oven", "ready", "in_transit", "delivered", "cancelled", "fraud_alert"],
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "total": {
+          "type": "number",
+          "description": "Total order amount in UYU"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the creator or staff member syncing the order",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp"
+        }
+      },
+      "required": ["orderNumber", "orderType", "status", "total", "ownerId", "createdAt", "updatedAt"]
+    },
+    "SyncAuditLog": {
+      "title": "SyncAuditLog",
+      "description": "Audit log of Google Sheets and Google Drive synchronization events.",
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Type of sync operation performed",
+          "minLength": 3,
+          "maxLength": 80
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Google Spreadsheet or Drive File ID",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the staff member who triggered the sync",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": ["action", "targetId", "ownerId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/OrderRecord"
+      },
+      "description": "Cloud-mirrored restaurant orders accessible to their creator or bootstrapped administrator."
+    },
+    "/sync_logs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/SyncAuditLog"
+      },
+      "description": "Audit trail of Google Workspace exports and backups."
+    }
+  }
+}

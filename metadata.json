@@ -1,0 +1,6 @@
+{
+  "name": "Veo Studio - Generador de Video con IA",
+  "description": "Estudio profesional de generación, animación y dirección cinematográfica de video con IA impulsado por gemini-omni-1.2-flash (Veo).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
